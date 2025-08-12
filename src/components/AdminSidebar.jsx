@@ -1,0 +1,279 @@
+import React, { useState } from "react";
+import logo from "../assets/images/WhatsApp Image 2025-06-30 at 16.52.32_498f8c48.jpg";
+import { useDispatch, useSelector } from "react-redux";
+import { GiHamburgerMenu } from "react-icons/gi";
+import { IoIosClose, IoIosLogOut } from "react-icons/io";
+import { MdLockReset, MdOutlineAdminPanelSettings, MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
+import { setPermissions } from "../slices/companyPermission";
+import { setAllCompany } from "../slices/allCompanySlice";
+import { setCompany, setReduxShifts } from "../slices/shiftSlice";
+import { setReduxManagers } from "../slices/manager";
+import { setReduxDepartments } from "../slices/departments";
+import toast from "react-hot-toast";
+
+const AdminSidebar = () => {
+  const [show, setShow] = useState(false);
+  const [expanded, setExpanded] = useState({});
+
+  const permissions = useSelector(
+    (state) => state.permissions.permissions || []
+  );
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const structuredPermissions = {
+    "Add/Edit Employee": [
+      { name: "Add Employee", link: "/addemployee" },
+      { name: "Edit Employee", link: "/editemployee" },
+    ],
+    "Add Manager": [
+      { name: "Add Manager", link: "/addmanager" },
+    ],
+    "Payroll Manage": [
+      { name: "Payroll Manage", link: "/payrollmanage" },
+      { name: "Employee master information", link: "/employeemasterinformation" },
+      { name: "CTC Structure", link: "/ctcstructure" },
+      { name: "Payments & Deductions", link: "/paymentsanddeductions" },
+      { name: "Perquisites Investments", link: "/perquisitesinvestments" },
+      { name: "Tax Computation", link: "/taxcomputation" },
+      { name: "Reimbursement", link: "/reimbursement" },
+      { name: "Flexi", link: "/flexi" },
+      { name: "Tax computation sheet", link: "/taxcomputationsheet" },
+      { name: "Investments (All sections: BOC,BOD,24b,etc.)", link: "/investments" },
+      { name: "Payroll Calculation", link: "/payrollcalculation" },
+    ],
+    "Leave Management": {
+      "Attendance": [
+        { name: "Shift Management", link: "/shiftmanagement" },
+        { name: "Shift Assign", link: "/shiftassign" },
+        { name: "Attendence Assign", link: "/attendenceassign" },
+      ],
+      "Leave": [
+        { name: "Add Leave", link: "/addleave" },
+        { name: "Leave Assign", link: "/leaveassign" },
+        { name: "Leave Approval", link: "/leaveapproval" },
+        { name: "Leave Balance", link: "/leavebalance" },
+      ],
+      "Overtime Tracking": [
+        { name: "Rule", link: "/overtimerule" },
+        { name: "History", link: "/overtimehistory" },
+      ],
+    },
+    "Policies": [
+      { name: "Policies", link: "/policies" },
+    ],
+    "ON Boarding": [
+      { name: "New Joiners Form", link: "/newjoinersform" },
+    ],
+    "Exit Formalities": [
+      { name: "Resignation Setup", link: "/resignationsetup" },
+      { name: "Resignation Approval", link: "/resignationapproval" },
+    ],
+    "Performance": [
+      { name: "Self Evaluation (KRA)", link: "/selfevaluation" },
+    ],
+    "Reports": [
+      { name: "Employee Master Report", link: "/employeemasterreport" },
+      { name: "CTC Structure Report", link: "/ctcstructurereport" },
+      { name: "Payments & Deductions Report", link: "/paymentsanddeductionsreport" },
+      { name: "Declaration", link: "/declaration" },
+      { name: "Actuals", link: "/actuals" },
+      { name: "Tax Computation Report", link: "/taxcomputationreport" },
+      { name: "Reimbursement Report", link: "/reimbursementreport" },
+      { name: "Flexi Report", link: "/flexireport" },
+      { name: "LIC/Credit Society Deductions", link: "/liccreditsocietydeductions" },
+      { name: "Investments Report", link: "/investmentsreport" },
+      { name: "Payroll Calculation Report", link: "/payrollcalculationreport" },
+      { name: "Attendence Report", link: "/attendencereport" },
+      { name: "Leave Report", link: "/leavereport" },
+      { name: "Overtime Report", link: "/overtimereport" },
+      { name: "Individual Report", link: "/individualreport" },
+    ],
+  };
+
+  const toggleHeading = (heading) => {
+    setExpanded((prev) => ({ ...prev, [heading]: !prev[heading] }));
+  };
+
+  const toggleSubHeading = (parentHeading, subHeading) => {
+    const key = `${parentHeading}-${subHeading}`;
+    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const hasPermissionForSection = (items) => {
+    if (Array.isArray(items)) {
+      return items.some((item) => permissions.includes(item.name));
+    }
+    return Object.values(items).some((subItems) =>
+      Array.isArray(subItems)
+        ? subItems.some((item) => permissions.includes(item.name))
+        : false
+    );
+  };
+
+  const getFilteredItems = (items) => {
+    if (Array.isArray(items)) {
+      return items.filter((item) => permissions.includes(item.name));
+    }
+    const filtered = {};
+    Object.entries(items).forEach(([subKey, subItems]) => {
+      if (Array.isArray(subItems)) {
+        const filteredSubItems = subItems.filter((item) =>
+          permissions.includes(item.name)
+        );
+        if (filteredSubItems.length > 0) {
+          filtered[subKey] = filteredSubItems;
+        }
+      }
+    });
+    return filtered;
+  };
+
+  const logoutHandler = () => {
+    dispatch(setPermissions(null));
+    dispatch(setAllCompany(null));
+    dispatch(setCompany(null));
+    dispatch(setReduxShifts(null));
+    dispatch(setReduxManagers(null));
+    dispatch(setReduxDepartments(null));
+    localStorage.clear();
+    navigate("/login");
+    toast.success("You have logged out successfully!");
+  };
+
+  const renderMenuItems = () => {
+    return Object.entries(structuredPermissions)
+      .map(([heading, items], index) => {
+        if (!hasPermissionForSection(items)) return null;
+
+        const filteredItems = getFilteredItems(items);
+
+        return (
+          <div key={index} className="w-full">
+            <button
+              onClick={() => toggleHeading(heading)}
+              className="w-full flex justify-between items-center text-left pl-5 pr-3 py-2 font-semibold text-lg hover:text-blue-300 transition-colors duration-200"
+            >
+              <span>{heading}</span>
+              {expanded[heading] ? <MdKeyboardArrowDown /> : <MdKeyboardArrowRight />}
+            </button>
+
+            {expanded[heading] && (
+              <div className="ml-4 border-l border-blue-500 pl-3 space-y-1">
+                {Array.isArray(filteredItems) ? (
+                  filteredItems.map((item, i) => (
+                    <div
+                      key={i}
+                      className="text-sm hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
+                      onClick={() => navigate(item.link)}
+                    >
+                      {item.name}
+                    </div>
+                  ))
+                ) : (
+                  Object.entries(filteredItems).map(
+                    ([subHeading, subItems], subIndex) => (
+                      <div key={subIndex} className="w-full">
+                        <button
+                          onClick={() => toggleSubHeading(heading, subHeading)}
+                          className="w-full flex justify-between items-center text-left pr-3 py-1 font-medium text-base hover:text-blue-300 transition-colors duration-200"
+                        >
+                          <span>{subHeading}</span>
+                          {expanded[`${heading}-${subHeading}`] ? (
+                            <MdKeyboardArrowDown />
+                          ) : (
+                            <MdKeyboardArrowRight />
+                          )}
+                        </button>
+                        {expanded[`${heading}-${subHeading}`] && (
+                          <div className="ml-4 space-y-1">
+                            {subItems.map((item, i) => (
+                              <div
+                                key={i}
+                                className="text-sm hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
+                                onClick={() => navigate(item.link)}
+                              >
+                                {item.name}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  )
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })
+      .filter(Boolean);
+  };
+
+  return (
+    <div className="fixed top-0 left-0 z-50">
+      {/* Mobile Menu Toggle */}
+      <div
+        onClick={() => setShow(true)}
+        className={`${
+          !show ? "flex" : "hidden"
+        } text-blue-950 lg:pt-3 lg:pl-3 text-2xl lg:hidden cursor-pointer`}
+      >
+        <GiHamburgerMenu />
+      </div>
+
+      {/* Sidebar */}
+      <div
+        className={`${
+          show ? "flex flex-col" : "hidden"
+        } relative gap-2 h-screen items-center bg-blue-950 w-[80vw] py-4 lg:flex lg:flex-col overflow-y-auto no-scrollbar lg:w-[20vw] lg:gap-3`}
+      >
+        {/* Close Button (Mobile) */}
+        <div
+          onClick={() => setShow(false)}
+          className="absolute text-4xl right-3 top-2 text-blue-700 lg:hidden cursor-pointer hover:text-blue-500 transition-colors duration-200"
+        >
+          <IoIosClose />
+        </div>
+
+        {/* Logo */}
+        <div className="w-full px-4">
+          <img src={logo} alt="MASU Consultancy" className="w-full h-auto" />
+        </div>
+
+        {/* Admin Header */}
+        <div className="w-[90%] h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">
+          <MdOutlineAdminPanelSettings /> Admin
+        </div>
+
+        {/* Navigation Menu */}
+        <div className="w-full flex flex-col items-start px-4 text-white text-sm gap-1 flex-1">
+          {renderMenuItems()}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="w-full px-4 space-y-3">
+          <div
+            onClick={() => navigate("/changepassword")}
+            className="flex pl-5 items-center cursor-pointer gap-4 text-white text-xl h-[6vh] w-full bg-blue-800 rounded-full hover:scale-105 hover:bg-blue-700 transition-all duration-200"
+          >
+            <MdLockReset />
+            <span>Reset Password</span>
+          </div>
+
+          <div
+            onClick={logoutHandler}
+            className="flex pl-5 items-center cursor-pointer gap-4 text-white text-xl h-[6vh] w-full bg-red-600 rounded-full hover:scale-105 hover:bg-red-500 transition-all duration-200"
+          >
+            <IoIosLogOut />
+            <span>LogOut</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminSidebar;
