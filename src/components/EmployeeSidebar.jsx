@@ -3,7 +3,11 @@ import logo from "../assets/images/WhatsApp Image 2025-06-30 at 16.52.32_498f8c4
 import { useDispatch } from "react-redux";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { IoIosClose, IoIosLogOut } from "react-icons/io";
-import { MdLockReset, MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
+import {
+  MdLockReset,
+  MdKeyboardArrowDown,
+  MdKeyboardArrowRight,
+} from "react-icons/md";
 import { IoManOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import { setPermissions } from "../slices/companyPermission";
@@ -20,15 +24,17 @@ const EmployeeSidebar = () => {
   const dispatch = useDispatch();
 
   const tabs = {
-    "Dashboard": [{ name: "Employee Dashboard", link: "/employeepanel" }],
+    Dashboard: [{ name: "Employee Dashboard", link: "/employeepanel" }],
     "My Profile": [{ name: "Personal Information", link: "/employeeprofile" }],
-    "CTC & Salary Structure": [{ name: "Salary Breakdown", link: "/salarybreakdown" }],
+    "CTC & Salary Structure": [
+      { name: "Salary Breakdown", link: "/salarybreakdown" },
+    ],
     "Pay Slip": [{ name: "Select MM/YY", link: "/payslip" }],
-    "Investment": [
+    Investment: [
       { name: "Declaration", link: "/declaration" },
       { name: "Approval Status", link: "/approvalstatus" },
     ],
-    "Reimbursement": [
+    Reimbursement: [
       { name: "Investment", link: "/investment" },
       { name: "Reimbursements", link: "/reimbursements" },
     ],
@@ -36,13 +42,20 @@ const EmployeeSidebar = () => {
       { name: "Tax Regime Selection (old/new)", link: "/taxregimeselection" },
       { name: "Tax Computation Sheet", link: "/taxcomputationsheet" },
     ],
-    "Attendence": [{ name: "Daily Attendence Records", link: "/dailyattendencerecords" }],
+    Attendence: [
+      { name: "Daily Attendence Records", link: "/dailyattendencerecords" },
+    ],
     "Leave Management": [
       { name: "Apply for Leave", link: "/addleave" },
+      { name: "Leave Balance", link: "/leavebalance" },
       { name: "OT Hours & Adjustment", link: "/othoursandadjustment" },
     ],
+    Policies: [{ name: "Policy", link: "/employeepolicy" }],
     "On Boarding and Exit": [
-      { name: "Resignation Submission & Notice Period", link: "/resignationsubmission" },
+      {
+        name: "Resignation Submission & Notice Period",
+        link: "/resignationsubmission",
+      },
     ],
     "Performance & Reports": [
       { name: "Self Evaluation & KRA", link: "/selfevaluation" },
@@ -74,7 +87,11 @@ const EmployeeSidebar = () => {
           className="w-full flex justify-between items-center text-left pl-5 pr-3 py-2 font-semibold text-lg hover:text-blue-300 transition-colors duration-200"
         >
           <span>{heading}</span>
-          {expanded[heading] ? <MdKeyboardArrowDown /> : <MdKeyboardArrowRight />}
+          {expanded[heading] ? (
+            <MdKeyboardArrowDown />
+          ) : (
+            <MdKeyboardArrowRight />
+          )}
         </button>
 
         {expanded[heading] && (

@@ -38,7 +38,7 @@ const AdminSidebar = () => {
       { name: "Payments & Deductions", link: "/paymentsanddeductions" },
       { name: "Perquisites Investments", link: "/perquisitesinvestments" },
       { name: "Tax Computation", link: "/taxcomputation" },
-      { name: "Reimbursement", link: "/reimbursement" },
+      { name: "Reimbursement", link: "/reimbursementcategory" },
       { name: "Flexi", link: "/flexi" },
       { name: "Tax computation sheet", link: "/taxcomputationsheet" },
       { name: "Investments (All sections: BOC,BOD,24b,etc.)", link: "/investments" },
@@ -51,10 +51,10 @@ const AdminSidebar = () => {
         { name: "Attendence Assign", link: "/attendenceassign" },
       ],
       "Leave": [
-        { name: "Add Leave", link: "/addleave" },
+        { name: "Add Leave", link: "/addleavepolicy" },
         { name: "Leave Assign", link: "/leaveassign" },
         { name: "Leave Approval", link: "/leaveapproval" },
-        { name: "Leave Balance", link: "/leavebalance" },
+        { name: "Leave Balance", link: "/adminleavebalance" },
       ],
       "Overtime Tracking": [
         { name: "Rule", link: "/overtimerule" },
@@ -244,7 +244,7 @@ const AdminSidebar = () => {
         </div>
 
         {/* Admin Header */}
-        <div className="w-[90%] h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">
+        <div onClick={()=>navigate('/adminpanel')} className="w-[90%] cursor-pointer h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">
           <MdOutlineAdminPanelSettings /> Admin
         </div>
 

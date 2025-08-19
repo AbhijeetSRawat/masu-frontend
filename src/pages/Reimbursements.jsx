@@ -8,6 +8,7 @@ import {
 import { setLoading } from "../slices/companyPermission";
 import { apiConnector } from "../services/apiConnector";
 import toast from "react-hot-toast";
+import EmployeeHeader from "../components/EmployeeHeader";
 
 const { CREATE_REIMBURSEMENT, GET_EMPLOYEE_REIMBURSEMENTS } =
   reimbursementsEndpoints;
@@ -133,9 +134,8 @@ const Reimbursements = () => {
     <div className="relative">
       <EmployeeSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw] pr-4 pb-10">
-        <div className="w-[100vw] flex justify-center  z-0 top-0 left-9 items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold lg:w-[80vw]">
-          Employee Panel ({employee.user.profile.firstName})
-        </div>
+         {/* Employee panel bar */}
+      <EmployeeHeader/>
         <h2 className="text-3xl mt-4 font-semibold mb-6 text-center">
           Reimbursements List
         </h2>

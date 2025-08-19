@@ -35,13 +35,18 @@ import { ForHRTeams } from "./pages/ForHRTeams";
 import PayrollProcessing from "./pages/PayrollProcessing";
 import TaxCompliance from "./pages/TaxCompliance";
 import EmployeeProfile from "./pages/EmployeeProfile";
+import LeavePolicy from "./pages/LeavePolicy";
+import EmployeeMasterInformation from "./pages/EmployeeMasterInformation";
+import EmployeePolicy from "./pages/EmployeePolicy";
+import LeaveBalance from "./pages/LeaveBalance";
+import AdminLeaveBalance from "./pages/AdminLeaveBalance";
 
 function App() {
   const role = useSelector((state) => state.auth.role);
 
   return (
     <>
-      <div>
+      <div className="lg:overflow-x-hidden">
         <Routes>
           <Route path="/" element={<Home/>}/>
     
@@ -63,6 +68,10 @@ function App() {
           <Route path="/employeeprofile" element={<EmployeeProfile/>}/>
           <Route path="/addleave" element={<AddLeave />}/>
           <Route path="/reimbursements" element={<Reimbursements/>}/>
+          <Route path="/employeepolicy" element={<EmployeePolicy/>}/>
+          <Route path="/leavebalance" element={<LeaveBalance/>}/>
+
+
           {role === "superadmin" && (
             <>
               <Route
@@ -99,6 +108,9 @@ function App() {
           <Route path="/reimbursementreport" element={<PrivateRoute> <ReimbursementReport/> </PrivateRoute>}/>
           <Route path="/reimbursementcategory" element={<PrivateRoute> <ReimbursementCategory/> </PrivateRoute>}/>
           <Route path="/customizetablesequence" element={<PrivateRoute><CustomizeTableSequence/></PrivateRoute>}/>
+          <Route path="/addleavepolicy" element={<PrivateRoute><LeavePolicy/></PrivateRoute>}/>
+          <Route path="/employeemasterinformation" element={<PrivateRoute><EmployeeMasterInformation/></PrivateRoute>}/>
+          <Route path="/adminleavebalance" element={<PrivateRoute><AdminLeaveBalance/></PrivateRoute>}/>
             </>
           )}
 

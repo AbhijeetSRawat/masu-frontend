@@ -6,6 +6,7 @@ import { apiConnector } from "../services/apiConnector";
 
 import toast from "react-hot-toast";
 import { reimbursementCategoryEndpoints } from "../services/api";
+import AdminHeader from "../components/AdminHeader";
 
 const {  CREATE_CATEGORY,
   GET_ALL_CATEGORY,
@@ -56,9 +57,8 @@ const [selectedCategory, setSelectedCategory] = useState(null);
     <div className="flex">
       <AdminSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw] pb-10">
-        <div className="w-full flex justify-center items-center px-6 py-6 text-3xl text-white bg-gray-600 font-semibold">
-        <img src={company.thumbnail} alt="logo" className="h-[6vh] mr-2"/>  Admin Panel ({company?.name})
-        </div>
+       <AdminHeader/>
+
 
      
 
@@ -123,6 +123,13 @@ const [selectedCategory, setSelectedCategory] = useState(null);
             try {
               dispatch(setLoading(true));
               console.log(user);
+
+              console.log("data is : ",newCategory.name,
+                newCategory.description,
+                 company._id,
+                 user.user.id,
+              )
+
               const res = await apiConnector("POST", CREATE_CATEGORY, {
                 name: newCategory.name,
                 description: newCategory.description,

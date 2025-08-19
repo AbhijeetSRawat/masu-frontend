@@ -11,6 +11,7 @@ import { setReduxShifts } from "../slices/shiftSlice";
 import { setReduxManagers } from "../slices/manager";
 import { setReduxDepartments } from "../slices/departments";
 import { setReduxEmployee } from "../slices/employee";
+import SuperAdminHeader from "../components/SuperAdminHeader";
 
 const { COMPANY_LIST_API, PERMISSIONS_API, UPDATE_DETAILS_API } =
   companyEndpoints;
@@ -238,9 +239,7 @@ const CompanyList = () => {
     <div className="relative">
       <Sidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[79vw] pr-4 pb-10">
-        <div className="w-[100vw] flex justify-center  z-0 top-0 left-9 items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold lg:w-[79vw]">
-          Super-Admin Panel
-        </div>
+       <SuperAdminHeader/>
         <h2 className="text-3xl mt-4 font-semibold mb-6 text-center">
           Company List
         </h2>

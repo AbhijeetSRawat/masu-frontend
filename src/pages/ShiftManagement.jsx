@@ -7,6 +7,7 @@ import { apiConnector } from "../services/apiConnector";
 import { shiftEndpoints } from "../services/api";
 import toast from "react-hot-toast";
 import { setReduxShifts } from "../slices/shiftSlice";
+import AdminHeader from "../components/AdminHeader";
 
 const { ADD_SHIFT, UPDATE_SHIFT, GET_ALL_SHIFTS } = shiftEndpoints;
 
@@ -96,9 +97,11 @@ const ShiftManagement = () => {
     <div className="flex">
       <AdminSidebar />
       <div className="w-[100vw] lg:w-[80vw] lg:ml-[20vw]">
-        <div className="w-[100vw] flex justify-center  z-0 top-0 left-9 items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold lg:w-[80vw]">
-        <img src={company.thumbnail} alt="logo" className="h-[6vh] mr-2"/>  Admin Panel ({company.name})
-        </div>
+        <AdminHeader/>
+
+      <div className="text-2xl w-full flex justify-center font-bold mt-8">
+        Shift Management
+      </div>
 
        {
         loading?(

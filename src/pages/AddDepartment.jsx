@@ -7,6 +7,7 @@ import { companyEndpoints, departmentEndpoints } from "../services/api";
 import { setReduxManagers } from "../slices/manager";
 import toast from "react-hot-toast";
 import { setReduxDepartments } from "../slices/departments";
+import AdminHeader from "../components/AdminHeader";
 
 const { GET_ALL_MANAGER } = companyEndpoints;
 const { ADD_DEPARTMENT, UPDATE_DEPARTMENT, GET_ALL_DEPARTMENTS } =
@@ -129,9 +130,8 @@ const AddDepartment = () => {
     <div className="flex">
       <AdminSidebar />
       <div className="w-[100vw] lg:w-[80vw] lg:ml-[20vw]">
-        <div className="w-[100vw] flex justify-center  z-0 top-0 left-9 items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold lg:w-[80vw]">
-         <img src={company.thumbnail} alt="logo" className="h-[6vh] mr-2"/> Admin Panel ({company.name})
-        </div>
+       <AdminHeader/>
+
 
         {loading ? (
           <div className="w-[80vw] h-[92vh] flex justify-center items-center">

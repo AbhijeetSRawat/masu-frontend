@@ -6,10 +6,12 @@ import { apiConnector } from "../services/apiConnector";
 import { policiesEndpoints } from "../services/api";
 import toast from "react-hot-toast";
 import AdminHeader from "../components/AdminHeader";
+import EmployeeSidebar from "../components/EmployeeSidebar";
+import EmployeeHeader from "../components/EmployeeHeader";
 
 const { ADD_POLICY, GET_POLICIES, UPDATE_POLICY } = policiesEndpoints;
 
-const Policies = () => {
+const EmployeePolicy = () => {
   const company = useSelector((state) => state.permissions.company);
   const loading = useSelector((state) => state.permissions.loading);
   const dispatch = useDispatch();
@@ -41,54 +43,9 @@ const Policies = () => {
     }
   };
 
-  const handleAddOrUpdate = async () => {
-    try {
-      dispatch(setLoading(true));
-      const formData = new FormData();
-      formData.append("companyId", company._id);
-      formData.append("title", policyForm.name);
-      formData.append("description", policyForm.description);
-      if (policyForm.file) formData.append("policyFile", policyForm.file);
+ 
 
-      if (isAddModalOpen) {
-        await apiConnector("POST", ADD_POLICY, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        toast.success("Policy added successfully!");
-      } else {
-        await apiConnector(
-          "PUT",
-          UPDATE_POLICY + selectedPolicy._id,
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-        toast.success("Policy updated successfully!");
-      }
-
-      setIsAddModalOpen(false);
-      setIsEditModalOpen(false);
-      setPolicyForm({ name: "", description: "", file: null });
-      setSelectedPolicy(null);
-      getAllPolicy();
-    } catch (err) {
-      toast.error("Save failed!");
-      console.log(err);
-    } finally {
-      dispatch(setLoading(false));
-    }
-  };
-
-  const handleEditPolicy = (policy) => {
-    setSelectedPolicy(policy);
-    setPolicyForm({
-      name: policy.title,
-      description: policy.description,
-      file: null,
-    });
-    setIsEditModalOpen(true);
-  };
+  
 
   const handleViewPolicy = (policy) => {
     setSelectedPolicy(policy);
@@ -101,9 +58,9 @@ const Policies = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+      <EmployeeSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <AdminHeader/>
+        <EmployeeHeader/>
 
 
         {loading ? (
@@ -112,19 +69,8 @@ const Policies = () => {
           </div>
         ) : (
           <>
-            {/* Add Button */}
-            <div className="flex justify-end px-6 mt-4">
-              <button
-                onClick={() => {
-                  setIsAddModalOpen(true);
-                  setPolicyForm({ name: "", description: "", file: null });
-                  setSelectedPolicy(null);
-                  setIsAddModalOpen(true);
-                }}
-                className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800"
-              >
-                + Add Policy
-              </button>
+            <div className="w-full flex justify-center text-3xl font-bold text-gray-800 py-4">
+                Policies
             </div>
 
             {/* Table */}
@@ -152,12 +98,7 @@ const Policies = () => {
                           >
                             View
                           </button>
-                          <button
-                            onClick={() => handleEditPolicy(p)}
-                            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                          >
-                            Edit
-                          </button>
+                          
                         </div>
                       </td>
                     </tr>
@@ -168,65 +109,7 @@ const Policies = () => {
           </>
         )}
 
-        {/* Shared Modal: Add/Edit */}
-        {(isAddModalOpen || isEditModalOpen) && (
-          <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm z-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-lg w-[90vw] max-w-md">
-              <h2 className="text-xl font-semibold mb-4">
-                {isAddModalOpen ? "Add Policy" : "Edit Policy"}
-              </h2>
-              <input
-                placeholder="Name"
-                value={policyForm.name}
-                onChange={(e) =>
-                  setPolicyForm((prev) => ({ ...prev, name: e.target.value }))
-                }
-                className="input-field mb-3"
-              />
-              <textarea
-                placeholder="Description"
-                value={policyForm.description}
-                onChange={(e) =>
-                  setPolicyForm((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                className="input-field mb-3"
-              />
-              <input
-                type="file"
-                accept=".pdf,image/*"
-                onChange={(e) =>
-                  setPolicyForm((prev) => ({
-                    ...prev,
-                    file: e.target.files[0],
-                  }))
-                }
-                className="mb-4"
-              />
-
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setIsAddModalOpen(false);
-                    setIsEditModalOpen(false);
-                    setSelectedPolicy(null);
-                  }}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddOrUpdate}
-                  className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
-                >
-                  {isAddModalOpen ? "Add Policy" : "Save Changes"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        
 
         {/* View Modal */}
         {isViewModalOpen && selectedPolicy && (
@@ -274,4 +157,4 @@ const Policies = () => {
   );
 };
 
-export default Policies;
+export default EmployeePolicy;

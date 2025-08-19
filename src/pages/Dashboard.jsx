@@ -8,6 +8,7 @@ import { TbLogs, TbReportAnalytics } from 'react-icons/tb';
 import { useNavigate } from 'react-router-dom';
 import { IoIosLogOut } from 'react-icons/io';
 import { useDispatch } from 'react-redux';
+import SuperAdminHeader from '../components/SuperAdminHeader';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -46,10 +47,10 @@ const Dashboard = () => {
   };
 
   return (
-    <div className='bg-white relative min-h-screen lg:flex lg:ml-[20vw]'>
+    <div className='relative '>
         <Sidebar  />
-        <div className=''>
-           <div className='w-[100vw] flex justify-center  z-0 top-0 left-9 items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold lg:w-[80vw]' >Super-Admin Panel</div>
+        <div className='w-full lg:ml-[20vw] lg:w-[79vw] pr-4 pb-10'>
+          <SuperAdminHeader/>
           <div className='w-[90vw] flex justify-center  z-0 top-0 left-9 items-center h-[8vh] text-3xl text-blue-950 font-semibold lg:w-[80vw]' >Dashboard</div>
        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {menuItems.map((item, index) => (

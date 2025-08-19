@@ -5,6 +5,7 @@ import { setLoading } from "../slices/shiftSlice";
 import { tablecustomisationEndpoints } from "../services/api";
 import { apiConnector } from "../services/apiConnector";
 import toast from "react-hot-toast";
+import AdminHeader from "../components/AdminHeader";
 
 const {
   CREATE_TABLE_CUSTOMIZATION,
@@ -73,9 +74,8 @@ const CustomizeTableSequence = () => {
     <div className="flex">
       <AdminSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <div className="w-full flex justify-center items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold">
-        <img src={company.thumbnail} alt="logo" className="h-[6vh] mr-2"/>  Admin Panel ({company?.name})
-        </div>
+        <AdminHeader/>
+
 
         {loading ? (
           <div className="h-[92vh] flex justify-center items-center">

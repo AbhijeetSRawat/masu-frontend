@@ -19,6 +19,7 @@ import { SlCalender } from "react-icons/sl";
 import { FcOvertime } from "react-icons/fc";
 import { ImExit } from "react-icons/im";
 import { GrDocumentPerformance } from "react-icons/gr";
+import EmployeeHeader from "../components/EmployeeHeader";
 
 const EmployeePanel = () => {
   const employee = useSelector((state) => state.employees.reduxEmployee);
@@ -69,7 +70,14 @@ const EmployeePanel = () => {
       icon: <FaRegCalendarXmark />,
       items: [
         { name: "Apply for Leave", link: "/addleave" },
+        { name: "Leave Balance", link: "/leavebalance" },
         { name: "OT Hours & Adjustment", link: "/othours" },
+      ],
+    },
+    "Policies":{
+      icon: <FcOvertime />,
+      items: [
+        { name: "Policy", link: "/employeepolicy" },
       ],
     },
     "On Boarding and Exit": {
@@ -102,9 +110,7 @@ const EmployeePanel = () => {
       <EmployeeSidebar />
       <div className="w-full lg:w-[80vw] lg:ml-[20vw]">
         {/* Header */}
-        <div className="w-full flex justify-center px-6 py-6 min-h-[8vh] items-center text-3xl text-white bg-gray-600 font-semibold">
-          <img src={company?.thumbnail} alt="logo" className='h-[6vh] mr-4' />  Employee Panel ({employee?.user?.profile?.firstName || "Employee"})
-        </div>
+          <EmployeeHeader/>
 
         {/* Grid Layout */}
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

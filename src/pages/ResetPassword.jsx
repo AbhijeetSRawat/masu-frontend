@@ -50,6 +50,7 @@ const ResetPassword = () => {
   return (
     <div className="flex flex-col ">
        <Header />
+       
         <div className='flex flex-col items-center my-[30vh] '>
             <div className='bg-blue-950 min-h-[40vh] w-[70vw] flex flex-col  lg:w-[41vw] rounded-3xl p-10 shadow-2xl'>
 

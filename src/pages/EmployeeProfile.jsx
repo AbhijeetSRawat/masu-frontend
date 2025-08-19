@@ -5,6 +5,7 @@ import { employeeEndpoints } from "../services/api";
 import { setLoading } from "../slices/companyPermission";
 import { apiConnector } from "../services/apiConnector";
 import toast from "react-hot-toast";
+import EmployeeHeader from "../components/EmployeeHeader";
 
 const { getEmployeeProfile, updateEmployeeProfile } = employeeEndpoints;
 
@@ -326,9 +327,8 @@ const EmployeeProfile = () => {
     <div className="relative">
       <EmployeeSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw] pr-4 pb-10">
-        <div className="w-[100vw] flex justify-center z-0 top-0 left-9 items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold lg:w-[80vw]">
-          Employee Panel ({employeeDetails?.user?.profile?.firstName})
-        </div>
+        {/* Employee panel bar */}
+      <EmployeeHeader/>
         
         <div className="max-w-6xl mx-auto p-6">
           <div className="flex justify-between items-center mb-6">
@@ -421,49 +421,51 @@ const EmployeeProfile = () => {
                       )}
                     </div>
 
+                      {/* Employee ID (Read-only) */}
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Employee ID:
+                      </label>
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded flex-1">
+                        {employeeDetails.employmentDetails?.employeeId || "Not provided"}
+                      </p>
+                    </div>
+
                     {/* First Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        First Name *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        First Name:
                       </label>
                       {isEditing ? (
                         <input
                           type="text"
                           value={editableData.firstName}
                           onChange={(e) => handleInputChange('firstName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        <p className="text-gray-900 py-2">{employeeDetails.user?.profile?.firstName || "Not provided"}</p>
+                        <p className="text-gray-900 ml-3">{employeeDetails.user?.profile?.firstName || "Not provided"}</p>
                       )}
                     </div>
 
                     {/* Last Name */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Last Name *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Last Name:
                       </label>
                       {isEditing ? (
                         <input
                           type="text"
                           value={editableData.lastName}
                           onChange={(e) => handleInputChange('lastName', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        <p className="text-gray-900 py-2">{employeeDetails.user?.profile?.lastName || "Not provided"}</p>
+                        <p className="text-gray-900 ml-3">{employeeDetails.user?.profile?.lastName || "Not provided"}</p>
                       )}
                     </div>
 
-                    {/* Employee ID (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Employee ID
-                      </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded">
-                        {employeeDetails.employmentDetails?.employeeId || "Not provided"}
-                      </p>
-                    </div>
+                  
                   </div>
                 </div>
 
@@ -474,15 +476,15 @@ const EmployeeProfile = () => {
                   </h3>
                   <div className="space-y-4">
                     {/* Gender */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Gender *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Gender:
                       </label>
                       {isEditing ? (
                         <select
                           value={editableData.gender}
                           onChange={(e) => handleInputChange('gender', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Select Gender</option>
                           <option value="male">Male</option>
@@ -490,85 +492,85 @@ const EmployeeProfile = () => {
                           <option value="other">Other</option>
                         </select>
                       ) : (
-                        <p className="text-gray-900 py-2 capitalize">{employeeDetails.personalDetails?.gender || "Not provided"}</p>
+                        <p className="text-gray-900 ml-3 capitalize">{employeeDetails.personalDetails?.gender || "Not provided"}</p>
                       )}
                     </div>
 
                     {/* Date of Birth */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Date of Birth *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Date of Birth:
                       </label>
                       {isEditing ? (
                         <input
                           type="date"
                           value={editableData.dateOfBirth}
                           onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        <p className="text-gray-900 py-2">{formatDate(employeeDetails.personalDetails?.dateOfBirth)}</p>
+                        <p className="text-gray-900 ml-3">{formatDate(employeeDetails.personalDetails?.dateOfBirth)}</p>
                       )}
                     </div>
 
                     {/* City */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        City *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        City:
                       </label>
                       {isEditing ? (
                         <input
                           type="text"
                           value={editableData.city}
                           onChange={(e) => handleInputChange('city', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        <p className="text-gray-900 py-2">{employeeDetails.personalDetails?.city || "Not provided"}</p>
+                        <p className="text-gray-900 ml-3">{employeeDetails.personalDetails?.city || "Not provided"}</p>
                       )}
                     </div>
 
                     {/* State */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        State *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        State:
                       </label>
                       {isEditing ? (
                         <input
                           type="text"
                           value={editableData.state}
                           onChange={(e) => handleInputChange('state', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        <p className="text-gray-900 py-2">{employeeDetails.personalDetails?.state || "Not provided"}</p>
+                        <p className="text-gray-900 ml-3">{employeeDetails.personalDetails?.state || "Not provided"}</p>
                       )}
                     </div>
 
                     {/* Official Email (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Official Email
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Official Email:
                       </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded">
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded flex-1">
                         {employeeDetails.user?.email || "Not provided"}
                       </p>
                     </div>
 
                     {/* Personal Email */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Personal Email *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Personal Email:
                       </label>
                       {isEditing ? (
                         <input
                           type="email"
                           value={editableData.personalEmail}
                           onChange={(e) => handleInputChange('personalEmail', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        <p className="text-gray-900 py-2">{employeeDetails.personalDetails?.personalEmail || "Not provided"}</p>
+                        <p className="text-gray-900 ml-3">{employeeDetails.personalDetails?.personalEmail || "Not provided"}</p>
                       )}
                     </div>
                   </div>
@@ -581,36 +583,36 @@ const EmployeeProfile = () => {
                   </h3>
                   <div className="space-y-4">
                     {/* Official Mobile (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Official Mobile
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Official Mobile:
                       </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded">
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded flex-1">
                         {employeeDetails.user?.profile?.phone || "Not provided"}
                       </p>
                     </div>
 
                     {/* Personal Mobile */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Personal Mobile *
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Personal Mobile:
                       </label>
                       {isEditing ? (
                         <input
                           type="tel"
                           value={editableData.personalMobile}
                           onChange={(e) => handleInputChange('personalMobile', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 ml-3 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       ) : (
-                        <p className="text-gray-900 py-2">{employeeDetails.personalDetails?.personalMobile || "Not provided"}</p>
+                        <p className="text-gray-900 ml-3">{employeeDetails.personalDetails?.personalMobile || "Not provided"}</p>
                       )}
                     </div>
 
-                    {/* Skills - Improved Version */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Skills <span className="text-red-500">*</span>
+                    {/* Skills - This one needs vertical layout due to complexity */}
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Skills:
                       </label>
 
                       {isEditing ? (
@@ -619,7 +621,7 @@ const EmployeeProfile = () => {
                           onSkillsChange={(skills) => handleInputChange('skills', skills)}
                         />
                       ) : (
-                        <div className="py-2">
+                        <div className="ml-3">
                           {Array.isArray(employeeDetails.employmentDetails?.skills) && employeeDetails.employmentDetails.skills.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                               {employeeDetails.employmentDetails.skills.map((skill, index) => (
@@ -647,51 +649,51 @@ const EmployeeProfile = () => {
                   </h3>
                   <div className="space-y-4">
                     {/* Department (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Department
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Department:
                       </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded capitalize">
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded capitalize flex-1">
                         {employeeDetails.employmentDetails?.department?.name || "Not provided"}
                       </p>
                     </div>
 
                     {/* Designation (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Designation
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Designation:
                       </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded capitalize">
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded capitalize flex-1">
                         {employeeDetails.employmentDetails?.designation || "Not provided"}
                       </p>
                     </div>
 
                     {/* Employment Type (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Employment Type
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Employment Type:
                       </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded capitalize">
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded capitalize flex-1">
                         {employeeDetails.employmentDetails?.employmentType || "Not provided"}
                       </p>
                     </div>
 
                     {/* Joining Date (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Joining Date
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Joining Date:
                       </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded">
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded flex-1">
                         {formatDate(employeeDetails.employmentDetails?.joiningDate)}
                       </p>
                     </div>
 
                     {/* Status (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Status
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Status:
                       </label>
-                      <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium capitalize ${
+                      <span className={`ml-3 inline-block px-3 py-1 rounded-full text-sm font-medium capitalize ${
                         employeeDetails.employmentDetails?.status === 'active' 
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
@@ -701,11 +703,11 @@ const EmployeeProfile = () => {
                     </div>
 
                     {/* Company (Read-only) */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Company
+                    <div className="flex items-center">
+                      <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                        Company:
                       </label>
-                      <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded">
+                      <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded flex-1">
                         {employeeDetails.company?.name || "Not provided"}
                       </p>
                     </div>
@@ -719,21 +721,21 @@ const EmployeeProfile = () => {
                   </h3>
                 <div className="space-y-4">
                   {/* Role (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Role
+                  <div className="flex items-center">
+                    <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                      Role:
                     </label>
-                    <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded capitalize">
+                    <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded capitalize flex-1">
                       {employeeDetails.user?.role || "Not provided"}
                     </p>
                   </div>
 
                   {/* Shift (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Shift
+                  <div className="flex items-center">
+                    <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                      Shift:
                     </label>
-                    <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded">
+                    <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded flex-1">
                       {employeeDetails.employmentDetails?.shift?.name || "Not provided"}
                       {employeeDetails.employmentDetails?.shift?.startTime && 
                        employeeDetails.employmentDetails?.shift?.endTime && (
@@ -745,34 +747,34 @@ const EmployeeProfile = () => {
                   </div>
 
                   {/* Reporting To (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Reporting To
+                  <div className="flex items-center">
+                    <label className="text-sm font-medium text-gray-700 w-32 flex-shrink-0">
+                      Reporting To:
                     </label>
-                    <p className="text-gray-900 py-2 bg-gray-100 px-3 rounded">
+                    <p className="text-gray-900 ml-3 bg-gray-100 px-3 py-1 rounded flex-1">
                       {employeeDetails.employmentDetails?.reportingTo?.user?.profile?.firstName 
                         ? `${employeeDetails.employmentDetails.reportingTo.user.profile.firstName} ${employeeDetails.employmentDetails.reportingTo.user.profile.lastName || ''}`.trim()
                         : "Not provided"}
                     </p>
                   </div>
 
-                  {/* Leave Balance (Read-only) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Leave Balance
+                  {/* Leave Balance (Read-only) - This needs vertical layout */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Leave Balance:
                     </label>
-                    <div className="bg-gray-100 p-3 rounded">
+                    <div className="ml-3 bg-gray-100 p-3 rounded">
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div>
-                          <p className="font-medium text-gray-700">Casual</p>
+                          <p className="font-medium text-gray-700">Casual:</p>
                           <p className="text-gray-900">{employeeDetails.leaveBalance?.casual || 0} days</p>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-700">Sick</p>
+                          <p className="font-medium text-gray-700">Sick:</p>
                           <p className="text-gray-900">{employeeDetails.leaveBalance?.sick || 0} days</p>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-700">Earned</p>
+                          <p className="font-medium text-gray-700">Earned:</p>
                           <p className="text-gray-900">{employeeDetails.leaveBalance?.earned || 0} days</p>
                         </div>
                       </div>

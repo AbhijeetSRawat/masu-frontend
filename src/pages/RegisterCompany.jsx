@@ -7,6 +7,7 @@ import Sidebar from "../components/Sidebar";
 
 import { companyEndpoints } from "../services/api";
 import { apiConnector } from "../services/apiConnector";
+import SuperAdminHeader from "../components/SuperAdminHeader";
 
 const { REGISTER_API } = companyEndpoints;
 
@@ -220,9 +221,18 @@ function RegisterCompany() {
         confirmButtonText: "Continue",
       });
 
-      // Reset form
-      setCustomFields([{ label: "", name: "" }]);
+      // Complete form reset
       setFormData({ ...initialState });
+      setCustomFields([{ label: "", name: "" }]);
+      setOptionalFields([]); // Reset optional checkboxes
+      setRemovedFields([]); // Reset removed fields
+      
+      // Reset the file input
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.value = '';
+      }
+
     } catch (err) {
       console.log(err);
       Swal.fire({
@@ -239,9 +249,7 @@ function RegisterCompany() {
     <div className="flex relative ">
       <Sidebar />
       <div className="max-w-screen mx-auto pb-4 bg-white rounded shadow lg:w-[79vw] lg:ml-[20vw]">
-        <div className="w-[90vw] flex justify-center  z-0 top-0 left-9 items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold lg:w-[79vw]">
-          Super-Admin Panel
-        </div>
+       <SuperAdminHeader/>
         <h2 className="text-3xl font-semibold mt-4 mb-6 text-center text-blue-950">
           Register Company
         </h2>

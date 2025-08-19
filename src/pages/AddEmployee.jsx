@@ -17,6 +17,7 @@ import { setReduxManagers } from "../slices/manager";
 import { setReduxDepartments } from "../slices/departments";
 import { setReduxEmployee, setReduxEmployees } from "../slices/employee";
 import { useNavigate } from "react-router-dom";
+import AdminHeader from "../components/AdminHeader";
 const { GET_ALL_SHIFTS } = shiftEndpoints;
 const { GET_ALL_MANAGER } = companyEndpoints;
 const { GET_ALL_DEPARTMENTS } = departmentEndpoints;
@@ -662,10 +663,7 @@ const AddEmployee = () => {
     <div className="flex">
       <AdminSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <div className="w-full flex justify-center items-center px-6 lg:px-0 py-6 lg:py-0 min-h-[8vh] text-3xl text-white bg-gray-600 font-semibold">
-          <img src={company.thumbnail} alt="logo" className="h-[6vh] mr-2" />{" "}
-          Admin Panel ({company?.name})
-        </div>
+       <AdminHeader/>
 
         {loading ? (
           <div className="flex w-[full] h-[92vh] justify-center items-center">

@@ -1,5 +1,5 @@
-// const BASE_URL = "http://localhost:4000"
-const BASE_URL = "https://masu-backend.onrender.com"
+const BASE_URL = "http://localhost:4000"
+// const BASE_URL = "https://masu-backend.onrender.com"
 
 // AUTH ENDPOINTS
 export const endpoints = {
@@ -55,12 +55,21 @@ export const policiesEndpoints = {
 
 //LEAVE ENDPOINTS
 export const leaveEndpoints = {
-  APPLY_LEAVE : BASE_URL + "/api/leave/apply",
-  GET_LEAVE : BASE_URL + "/api/leave/get/",
-  UPDATE_LEAVE_STATUS : BASE_URL + "/api/leave/update/",
-  GET_EMPLOYEE_LEAVES : BASE_URL + "/api/leave/employee/",
-  GET_COMPANY_LEAVES : BASE_URL + "/api/leave/getCompany/",
-  UPDATE_LEAVE : BASE_URL + "/api/leave/leaves/",
+  APPLY_LEAVE : BASE_URL + "/api/leave/leaves/apply",
+  // GET_LEAVE : BASE_URL + "/api/leave/leaves/get/",
+  // UPDATE_LEAVE_STATUS : BASE_URL + "/api/leave/update/",
+  GET_EMPLOYEE_LEAVES : BASE_URL + "/api/leave/leaves/",
+  // GET_COMPANY_LEAVES : BASE_URL + "/api/leave/getCompany/",
+  // UPDATE_LEAVE : BASE_URL + "/api/leave/leaves/",
+  approveLeave : BASE_URL + "/api/leave/leaves/",
+  rejectLeave : BASE_URL + "/api/leave/leaves/",
+  cancelLeave : BASE_URL + "/api/leave/leaves/",
+  getCompanyLeaves : BASE_URL + "/api/leave/leaves/",
+  getApprovedLeavesForCompany : BASE_URL + "/api/leave/approvedleaves/",
+  getPendingLeavesForCompany : BASE_URL + "/api/leave/pendingleaves/",
+  getCancelledLeavesForCompany : BASE_URL + "/api/leave/cancelledleaves/",
+  getRejectedLeavesForCompany : BASE_URL + "/api/leave/rejectedleaves/",
+  getRestLeaveofEmployee : BASE_URL + "/api/leave/"
 }
 
 //REIMBURSEMENTS ENDPOINTS
@@ -85,4 +94,14 @@ export const tablecustomisationEndpoints = {
   UPDATE_TABLE_CUSTOMIZATION : BASE_URL + "/api/table-structures/",
   DELETE_TABLE_CUSTOMIZATION : BASE_URL + "/api/table-structures/",
   
+}
+
+//leave-poilicy
+export const leavepolicyendpoints = {
+  createLeavePolicy : BASE_URL + "/api/leave-policy/",
+  updateLeavePolicy : BASE_URL + "/api/leave-policy/",
+  addLeaveType : BASE_URL + "/api/leave-policy/",
+  updateLeaveType : BASE_URL + "/api/leave-policy/",
+  removeLeaveType : BASE_URL + "/api/leave-policy/",
+  getLeavePolicy : BASE_URL + "/api/leave-policy/company/"
 }

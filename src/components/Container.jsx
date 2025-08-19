@@ -5,3 +5,4 @@ export default function Container({ className, children }) {
         <div className={`lg:w-[1250px] mx-auto w-full ${className}`}>{children}</div>
     )
 }
+

@@ -5,6 +5,7 @@ import { setLoading } from "../slices/companyPermission";
 import { apiConnector } from "../services/apiConnector";
 import { reimbursementsEndpoints } from "../services/api";
 import toast from "react-hot-toast";
+import AdminHeader from "../components/AdminHeader";
 
 const { GET_COMPANY_REIMBURSEMENTS, UPDATE_REIMBURSEMENTS_STATUS } = reimbursementsEndpoints;
 
@@ -69,9 +70,8 @@ const ReimbursementReport = () => {
     <div className="flex">
       <AdminSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw] pb-10">
-        <div className="w-full flex justify-center items-center px-6 py-6 text-3xl text-white bg-gray-600 font-semibold">
-        <img src={company.thumbnail} alt="logo" className="h-[6vh] mr-2"/>  Admin Panel ({company?.name})
-        </div>
+       <AdminHeader/>
+
 
         <div className="flex flex-wrap gap-3 px-6 mt-6">
           {["All", "Pending", "Approved", "Paid", "Rejected"].map((status) => (
