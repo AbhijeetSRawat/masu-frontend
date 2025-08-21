@@ -61,6 +61,7 @@ const CompanyList = () => {
     "Rule",
     "History",
     "Policies",
+    "Company Holidays",
     "New Joiners Form",
     "Resignation Setup",
     "Resignation Approval",

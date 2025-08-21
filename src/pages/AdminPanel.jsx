@@ -58,6 +58,9 @@ const AdminPanel = () => {
       ],
     },
     Policies: [{ name: "Policies", link: "/policies" }],
+    "Holidays": [
+      { name: "Company Holidays", link: "/companyholidays" },
+    ],
     "ON Boarding": [{ name: "New Joiners Form", link: "/newjoinersform" }],
     "Exit Formalities": [
       { name: "Resignation Setup", link: "/resignationsetup" },

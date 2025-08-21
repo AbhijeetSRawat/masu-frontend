@@ -14,6 +14,7 @@ const { ADD_POLICY, GET_POLICIES, UPDATE_POLICY } = policiesEndpoints;
 const EmployeePolicy = () => {
   const company = useSelector((state) => state.permissions.company);
   const loading = useSelector((state) => state.permissions.loading);
+  const token = useSelector(state => state.auth.token)
   const dispatch = useDispatch();
 
   const [policies, setPolicies] = useState([]);
@@ -31,7 +32,9 @@ const EmployeePolicy = () => {
   const getAllPolicy = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_POLICIES + company._id);
+      const res = await apiConnector("GET", GET_POLICIES + company._id,null,{
+        "Authorization" : `Bearer ${token}`
+      });
       console.log(res);
       setPolicies(res.data.data);
       toast.success("Policies fetched successfully!");

@@ -64,6 +64,9 @@ const AdminSidebar = () => {
     "Policies": [
       { name: "Policies", link: "/policies" },
     ],
+    "Holidays": [
+      { name: "Company Holidays", link: "/companyholidays" },
+    ],
     "ON Boarding": [
       { name: "New Joiners Form", link: "/newjoinersform" },
     ],
@@ -154,7 +157,7 @@ const AdminSidebar = () => {
           <div key={index} className="w-full">
             <button
               onClick={() => toggleHeading(heading)}
-              className="w-full flex justify-between items-center text-left pl-5 pr-3 py-2 font-semibold text-lg hover:text-blue-300 transition-colors duration-200"
+              className="w-full flex justify-between items-center text-left pl-5 pr-3 py-2 font-semibold text-xl hover:text-blue-300 transition-colors duration-200"
             >
               <span>{heading}</span>
               {expanded[heading] ? <MdKeyboardArrowDown /> : <MdKeyboardArrowRight />}
@@ -166,7 +169,7 @@ const AdminSidebar = () => {
                   filteredItems.map((item, i) => (
                     <div
                       key={i}
-                      className="text-sm hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
+                      className="text-lg hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
                       onClick={() => navigate(item.link)}
                     >
                       {item.name}
@@ -180,7 +183,7 @@ const AdminSidebar = () => {
                           onClick={() => toggleSubHeading(heading, subHeading)}
                           className="w-full flex justify-between items-center text-left pr-3 py-1 font-medium text-base hover:text-blue-300 transition-colors duration-200"
                         >
-                          <span>{subHeading}</span>
+                          <span className="text-xl" >{subHeading}</span>
                           {expanded[`${heading}-${subHeading}`] ? (
                             <MdKeyboardArrowDown />
                           ) : (
@@ -192,7 +195,7 @@ const AdminSidebar = () => {
                             {subItems.map((item, i) => (
                               <div
                                 key={i}
-                                className="text-sm hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
+                                className="text-lg hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
                                 onClick={() => navigate(item.link)}
                               >
                                 {item.name}

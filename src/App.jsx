@@ -40,6 +40,8 @@ import EmployeeMasterInformation from "./pages/EmployeeMasterInformation";
 import EmployeePolicy from "./pages/EmployeePolicy";
 import LeaveBalance from "./pages/LeaveBalance";
 import AdminLeaveBalance from "./pages/AdminLeaveBalance";
+import CompanyHolidays from "./pages/CompanyHolidays";
+import EmployeeMasterReport from "./pages/EmployeeMasterReport";
 
 function App() {
   const role = useSelector((state) => state.auth.role);
@@ -111,6 +113,8 @@ function App() {
           <Route path="/addleavepolicy" element={<PrivateRoute><LeavePolicy/></PrivateRoute>}/>
           <Route path="/employeemasterinformation" element={<PrivateRoute><EmployeeMasterInformation/></PrivateRoute>}/>
           <Route path="/adminleavebalance" element={<PrivateRoute><AdminLeaveBalance/></PrivateRoute>}/>
+          <Route path="/companyholidays" element={<PrivateRoute><CompanyHolidays/></PrivateRoute>}/>
+          <Route path="/employeemasterreport" element={<PrivateRoute><EmployeeMasterReport/></PrivateRoute>}/>
             </>
           )}
 

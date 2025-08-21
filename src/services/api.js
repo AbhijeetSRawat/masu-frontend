@@ -1,5 +1,5 @@
-// const BASE_URL = "http://localhost:4000"
-const BASE_URL = "https://masu-backend.onrender.com"
+const BASE_URL = "http://localhost:4000"
+// const BASE_URL = "https://masu-backend.onrender.com"
 
 // AUTH ENDPOINTS
 export const endpoints = {
@@ -42,7 +42,8 @@ export const employeeEndpoints = {
   EDIT_EMPLOYEE : BASE_URL + "/api/employee/edit/",
   CSV_EMPLOYEE_ADD : BASE_URL + "/api/employee/bulk-create",
   getEmployeeProfile : BASE_URL + "/api/employee/getemployee/",
-  updateEmployeeProfile : BASE_URL + "/api/employee/update/"
+  updateEmployeeProfile : BASE_URL + "/api/employee/update/",
+  monthWiseEmployees : BASE_URL + "/api/employee/monthWiseEmployees/",
 }
 
 //POLICIES ENDPOINTS
@@ -51,6 +52,7 @@ export const policiesEndpoints = {
   GET_POLICIES : BASE_URL + "/api/policies/company/",
   GET_ONE_POLICY : BASE_URL + "/api/policies/",
   UPDATE_POLICY : BASE_URL + "/api/policies/update/",
+  DELETE_POLICY : BASE_URL + "/api/policies/delete/"
 }
 
 //LEAVE ENDPOINTS
@@ -103,5 +105,6 @@ export const leavepolicyendpoints = {
   addLeaveType : BASE_URL + "/api/leave-policy/",
   updateLeaveType : BASE_URL + "/api/leave-policy/",
   removeLeaveType : BASE_URL + "/api/leave-policy/",
-  getLeavePolicy : BASE_URL + "/api/leave-policy/company/"
+  getLeavePolicy : BASE_URL + "/api/leave-policy/company/",
+  toggleLeaveTypeStatus : BASE_URL + "/api/leave-policy/"
 }

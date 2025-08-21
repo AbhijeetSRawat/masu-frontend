@@ -21,7 +21,6 @@ const LeavePolicy = () => {
     const [policyData, setPolicyData] = useState({
         yearStartMonth: 1,
         weekOff: [0, 6],
-        holidays: []
     });
 
     // Leave Types Data
@@ -34,30 +33,23 @@ const LeavePolicy = () => {
         minPerRequest: 1,
         requiresApproval: true,
         requiresDocs: false,
-        carryForward: false,
-        encashment:false,
-        lapse:false,
+        docsRequiredAfterDays: null,
         documentTypes: [],
         unpaid: false,
         isActive: true,
         applicableFor: 'all',
         maxInstancesPerYear: null,
-        coolingPeriod: 0
-    });
-
-    // Holiday Management
-    const [currentHoliday, setCurrentHoliday] = useState({
-        date: '',
-        name: '',
-        recurring: false,
-        description: ''
+        maxInstancesPerMonth: null,
+        coolingPeriod: 0,
+        carryForward: false,
+        encashment: false,
+        lapse: false,
+        excludeHolidays: true
     });
 
     const [editingIndex, setEditingIndex] = useState(-1);
-    const [editingHolidayIndex, setEditingHolidayIndex] = useState(-1);
     const [expandedLeaveType, setExpandedLeaveType] = useState(-1);
     const [showLeaveTypeForm, setShowLeaveTypeForm] = useState(false);
-    const [showHolidayForm, setShowHolidayForm] = useState(false);
     const [activeTab, setActiveTab] = useState('policy');
 
     const months = [
@@ -106,8 +98,7 @@ const LeavePolicy = () => {
                 setPolicyId(policy._id);
                 setPolicyData({
                     yearStartMonth: policy.yearStartMonth || 1,
-                    weekOff: policy.weekOff || [0, 6],
-                    holidays: policy.holidays || []
+                    weekOff: policy.weekOff || [0, 6]
                 });
                 setLeaveTypes(policy.leaveTypes || []);
             } else {
@@ -179,13 +170,6 @@ const LeavePolicy = () => {
         }));
     };
 
-    const handleHolidayChange = (field, value) => {
-        setCurrentHoliday(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
     // Add or Update Leave Type
     const handleSaveLeaveType = async () => {
         if (!currentLeaveType.name || !currentLeaveType.shortCode) {
@@ -235,7 +219,7 @@ const LeavePolicy = () => {
         try {
             dispatch(setLoading(true));
             const leaveTypeId = leaveTypes[index]._id;
-            const response = await apiConnector('PATCH', `${toggleLeaveTypeStatus}${policyId}/type/${leaveTypeId}/toggle`);
+            const response = await apiConnector('PATCH', `${toggleLeaveTypeStatus}${policyId}/leave-types/${leaveTypeId}/toggle`);
             
             if (response.data.success) {
                 toast.success(response.data.message);
@@ -249,54 +233,6 @@ const LeavePolicy = () => {
         }
     };
 
-    // Holiday Management Functions
-    const handleSaveHoliday = async () => {
-        if (!currentHoliday.name || !currentHoliday.date) {
-            toast.error('Please fill in holiday name and date');
-            return;
-        }
-
-        try {
-            dispatch(setLoading(true));
-            const payload = {
-                ...policyData,
-                holidays: editingHolidayIndex >= 0 
-                    ? policyData.holidays.map((h, i) => i === editingHolidayIndex ? currentHoliday : h)
-                    : [...policyData.holidays, currentHoliday]
-            };
-
-            const response = await apiConnector('PUT', `${updateLeavePolicy}${policyId}`, payload);
-            
-            if (response.data.success) {
-                toast.success(editingHolidayIndex >= 0 ? 'Holiday updated successfully' : 'Holiday added successfully');
-                setPolicyData(payload);
-                resetHolidayForm();
-                setShowHolidayForm(false);
-            }
-        } catch (error) {
-            console.error('Error saving holiday:', error);
-            toast.error(error.response?.data?.message || 'Error saving holiday');
-        } finally {
-            dispatch(setLoading(false));
-        }
-    };
-
-    const editHoliday = (index) => {
-        const holiday = policyData.holidays[index];
-        setCurrentHoliday({ ...holiday });
-        setEditingHolidayIndex(index);
-        setShowHolidayForm(true);
-    };
-
-    const removeHoliday = (index) => {
-        const updatedHolidays = policyData.holidays.filter((_, i) => i !== index);
-        setPolicyData(prev => ({
-            ...prev,
-            holidays: updatedHolidays
-        }));
-        toast.success('Holiday removed. Don\'t forget to update the policy.');
-    };
-
     const resetLeaveTypeForm = () => {
         setCurrentLeaveType({
             name: '',
@@ -305,24 +241,20 @@ const LeavePolicy = () => {
             minPerRequest: 1,
             requiresApproval: true,
             requiresDocs: false,
+            docsRequiredAfterDays: null,
             documentTypes: [],
             unpaid: false,
             isActive: true,
             applicableFor: 'all',
             maxInstancesPerYear: null,
-            coolingPeriod: 0
+            maxInstancesPerMonth: null,
+            coolingPeriod: 0,
+            carryForward: false,
+            encashment: false,
+            lapse: false,
+            excludeHolidays: true
         });
         setEditingIndex(-1);
-    };
-
-    const resetHolidayForm = () => {
-        setCurrentHoliday({
-            date: '',
-            name: '',
-            recurring: false,
-            description: ''
-        });
-        setEditingHolidayIndex(-1);
     };
 
     const editLeaveType = (index) => {
@@ -393,8 +325,7 @@ const LeavePolicy = () => {
                             <nav className="flex space-x-8">
                                 {[
                                     { key: 'policy', label: 'Basic Policy' },
-                                    { key: 'leaves', label: 'Leave Types' },
-                                    { key: 'holidays', label: 'Holidays' }
+                                    { key: 'leaves', label: 'Leave Types' }
                                 ].map(tab => (
                                     <button
                                         key={tab.key}
@@ -583,6 +514,7 @@ const LeavePolicy = () => {
                                                                     <h5 className="font-medium text-gray-700 mb-2">Restrictions</h5>
                                                                     <div className="space-y-1 text-sm text-gray-600">
                                                                         <p><span className="font-medium">Max Instances/Year:</span> {leave.maxInstancesPerYear || 'Unlimited'}</p>
+                                                                        <p><span className="font-medium">Max Instances/Month:</span> {leave.maxInstancesPerMonth || 'Unlimited'}</p>
                                                                         <p><span className="font-medium">Cooling Period:</span> {leave.coolingPeriod} days</p>
                                                                     </div>
                                                                 </div>
@@ -593,12 +525,12 @@ const LeavePolicy = () => {
                                                                     <div className="space-y-1 text-sm text-gray-600">
                                                                         <p><span className="font-medium">Approval Required:</span> {leave.requiresApproval ? 'Yes' : 'No'}</p>
                                                                         <p><span className="font-medium">Documents Required:</span> {leave.requiresDocs ? 'Yes' : 'No'}</p>
+                                                                        {leave.requiresDocs && leave.docsRequiredAfterDays !== null && (
+                                                                            <p><span className="font-medium">Docs Required After:</span> {leave.docsRequiredAfterDays} days</p>
+                                                                        )}
                                                                         {leave.requiresDocs && leave.documentTypes?.length > 0 && (
                                                                             <p><span className="font-medium">Document Types:</span> {leave.documentTypes.join(', ')}</p>
                                                                         )}
-                                                                        <p><span className="font-medium">Carry Forward:</span> {leave.carryForward ? 'Yes' : 'No'}</p>
-                                                                        <p><span className="font-medium">Encashment:</span> {leave.encashment ? 'Yes' : 'No'}</p>
-                                                                        <p><span className="font-medium">Lapse:</span> {leave.lapse ? 'Yes' : 'No'}</p>
                                                                     </div>
                                                                 </div>
 
@@ -609,7 +541,11 @@ const LeavePolicy = () => {
                                                                         {[
                                                                             { key: 'unpaid', label: 'Unpaid Leave', color: 'red' },
                                                                             { key: 'requiresApproval', label: 'Requires Approval', color: 'blue' },
-                                                                            { key: 'requiresDocs', label: 'Requires Documents', color: 'yellow' }
+                                                                            { key: 'requiresDocs', label: 'Requires Documents', color: 'yellow' },
+                                                                            { key: 'carryForward', label: 'Carry Forward', color: 'green' },
+                                                                            { key: 'encashment', label: 'Encashment', color: 'purple' },
+                                                                            { key: 'lapse', label: 'Lapse', color: 'orange' },
+                                                                            { key: 'excludeHolidays', label: 'Exclude Holidays', color: 'indigo' }
                                                                         ].map(feature => (
                                                                             leave[feature.key] && (
                                                                                 <span key={feature.key} className={`px-2 py-1 text-xs rounded bg-${feature.color}-100 text-${feature.color}-800`}>
@@ -617,7 +553,7 @@ const LeavePolicy = () => {
                                                                                 </span>
                                                                             )
                                                                         ))}
-                                                                        {![leave.unpaid, leave.requiresApproval, leave.requiresDocs].some(Boolean) && (
+                                                                        {![leave.unpaid, leave.requiresApproval, leave.requiresDocs, leave.carryForward, leave.encashment, leave.lapse, leave.excludeHolidays].some(Boolean) && (
                                                                             <span className="text-gray-500 text-sm">No special features enabled</span>
                                                                         )}
                                                                     </div>
@@ -708,7 +644,7 @@ const LeavePolicy = () => {
                                         {/* Restrictions Section */}
                                         <div className="mb-6">
                                             <h4 className="text-md font-medium text-gray-700 mb-3">Restrictions</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Instances Per Year</label>
                                                     <input
@@ -716,6 +652,18 @@ const LeavePolicy = () => {
                                                         min="1"
                                                         value={currentLeaveType.maxInstancesPerYear || ''}
                                                         onChange={(e) => handleLeaveTypeChange('maxInstancesPerYear', e.target.value ? parseInt(e.target.value) : null)}
+                                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="Leave blank for unlimited"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Instances Per Month</label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={currentLeaveType.maxInstancesPerMonth || ''}
+                                                        onChange={(e) => handleLeaveTypeChange('maxInstancesPerMonth', e.target.value ? parseInt(e.target.value) : null)}
                                                         className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         placeholder="Leave blank for unlimited"
                                                     />
@@ -738,7 +686,7 @@ const LeavePolicy = () => {
                                         {/* Requirements Section */}
                                         <div className="mb-6">
                                             <h4 className="text-md font-medium text-gray-700 mb-3">Requirements & Settings</h4>
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                                                 <label className="flex items-center bg-gray-50 p-3 rounded-md">
                                                     <input
                                                         type="checkbox"
@@ -759,7 +707,7 @@ const LeavePolicy = () => {
                                                     <span className="text-sm">Requires Documents</span>
                                                 </label>
 
-                                                 <label className="flex items-center bg-gray-50 p-3 rounded-md">
+                                                <label className="flex items-center bg-gray-50 p-3 rounded-md">
                                                     <input
                                                         type="checkbox"
                                                         checked={currentLeaveType.carryForward}
@@ -769,7 +717,7 @@ const LeavePolicy = () => {
                                                     <span className="text-sm">Carry Forward</span>
                                                 </label>
 
-                                                 <label className="flex items-center bg-gray-50 p-3 rounded-md">
+                                                <label className="flex items-center bg-gray-50 p-3 rounded-md">
                                                     <input
                                                         type="checkbox"
                                                         checked={currentLeaveType.encashment}
@@ -779,7 +727,7 @@ const LeavePolicy = () => {
                                                     <span className="text-sm">Encashment</span>
                                                 </label>
 
-                                                 <label className="flex items-center bg-gray-50 p-3 rounded-md">
+                                                <label className="flex items-center bg-gray-50 p-3 rounded-md">
                                                     <input
                                                         type="checkbox"
                                                         checked={currentLeaveType.lapse}
@@ -802,6 +750,16 @@ const LeavePolicy = () => {
                                                 <label className="flex items-center bg-gray-50 p-3 rounded-md">
                                                     <input
                                                         type="checkbox"
+                                                        checked={currentLeaveType.excludeHolidays}
+                                                        onChange={(e) => handleLeaveTypeChange('excludeHolidays', e.target.checked)}
+                                                        className="mr-2"
+                                                    />
+                                                    <span className="text-sm">Exclude Holidays</span>
+                                                </label>
+
+                                                <label className="flex items-center bg-gray-50 p-3 rounded-md">
+                                                    <input
+                                                        type="checkbox"
                                                         checked={currentLeaveType.isActive}
                                                         onChange={(e) => handleLeaveTypeChange('isActive', e.target.checked)}
                                                         className="mr-2"
@@ -809,6 +767,23 @@ const LeavePolicy = () => {
                                                     <span className="text-sm">Active</span>
                                                 </label>
                                             </div>
+
+                                            {/* Documents Required After Days - Only shown when requiresDocs is true */}
+                                            {currentLeaveType.requiresDocs && (
+                                                <div className="mb-4">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Documents Required After Days
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={currentLeaveType.docsRequiredAfterDays || ''}
+                                                        onChange={(e) => handleLeaveTypeChange('docsRequiredAfterDays', e.target.value ? parseInt(e.target.value) : null)}
+                                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        placeholder="e.g., 3 (require docs if leave > 3 days)"
+                                                    />
+                                                </div>
+                                            )}
 
                                             {/* Document Types Section - Only shown when requiresDocs is true */}
                                             {currentLeaveType.requiresDocs && (
@@ -889,182 +864,15 @@ const LeavePolicy = () => {
                         </div>
                     )}
 
-                    {/* Holidays Tab */}
-                    {activeTab === 'holidays' && policyExists && (
-                        <div className="max-w-4xl mx-auto">
-                            <div className="bg-white shadow-lg rounded-lg p-6">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-xl font-semibold text-gray-800">
-                                        Holiday Management
-                                    </h2>
-                                    <button
-                                        onClick={() => {
-                                            setShowHolidayForm(!showHolidayForm);
-                                            if (showHolidayForm) {
-                                                resetHolidayForm();
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                                    >
-                                        {showHolidayForm ? 'Cancel' : 'Add New Holiday'}
-                                    </button>
-                                </div>
-
-                                {/* Existing Holidays */}
-                                {policyData.holidays.length > 0 && (
-                                    <div className="mb-6">
-                                        <h3 className="text-lg font-medium text-gray-800 mb-3">
-                                            Configured Holidays ({policyData.holidays.length})
-                                        </h3>
-                                        <div className="space-y-3">
-                                            {policyData.holidays.map((holiday, index) => (
-                                                <div key={index} className="bg-gray-50 rounded-lg border p-4">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex-1">
-                                                            <div className="flex items-center space-x-3 mb-2">
-                                                                <h4 className="font-semibold text-lg">{holiday.name}</h4>
-                                                                <span className="text-blue-600 font-medium">
-                                                                    {new Date(holiday.date).toLocaleDateString()}
-                                                                </span>
-                                                                {holiday.recurring && (
-                                                                    <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                                                                        Recurring
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            {holiday.description && (
-                                                                <p className="text-gray-600 text-sm">{holiday.description}</p>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex space-x-2">
-                                                            <button
-                                                                onClick={() => editHoliday(index)}
-                                                                className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-                                                            >
-                                                                Edit
-                                                            </button>
-                                                            <button
-                                                                onClick={() => removeHoliday(index)}
-                                                                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-                                                            >
-                                                                Remove
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Add/Edit Holiday Form */}
-                                {showHolidayForm && (
-                                    <div className="border-t pt-6">
-                                        <h3 className="text-lg font-medium text-gray-800 mb-4">
-                                            {editingHolidayIndex >= 0 ? 'Edit Holiday' : 'Add New Holiday'}
-                                        </h3>
-                                        
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Holiday Name *</label>
-                                                <input
-                                                    type="text"
-                                                    value={currentHoliday.name}
-                                                    onChange={(e) => handleHolidayChange('name', e.target.value)}
-                                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="e.g., Diwali"
-                                                />
-                                            </div>
-                                            
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                                                <input
-                                                    type="date"
-                                                    value={currentHoliday.date}
-                                                    onChange={(e) => handleHolidayChange('date', e.target.value)}
-                                                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="mb-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                            <textarea
-                                                value={currentHoliday.description}
-                                                onChange={(e) => handleHolidayChange('description', e.target.value)}
-                                                rows={3}
-                                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Optional description"
-                                            />
-                                        </div>
-
-                                        <div className="mb-6">
-                                            <label className="flex items-center bg-gray-50 p-3 rounded-md">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={currentHoliday.recurring}
-                                                    onChange={(e) => handleHolidayChange('recurring', e.target.checked)}
-                                                    className="mr-2"
-                                                />
-                                                <span className="text-sm">Recurring Holiday (Annual)</span>
-                                            </label>
-                                        </div>
-
-                                        <div className="flex gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={handleSaveHoliday}
-                                                className={`px-6 py-2 text-white rounded-md transition-colors ${
-                                                    editingHolidayIndex >= 0 
-                                                        ? 'bg-orange-600 hover:bg-orange-700' 
-                                                        : 'bg-green-600 hover:bg-green-700'
-                                                }`}
-                                            >
-                                                {editingHolidayIndex >= 0 ? 'Update Holiday' : 'Add Holiday'}
-                                            </button>
-                                            
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    resetHolidayForm();
-                                                    setShowHolidayForm(false);
-                                                }}
-                                                className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-                                            >
-                                                Cancel
-                                            </button>
-                                        </div>
-
-                                        
-                                    </div>
-                                )}
-
-                                {/* No Holidays Message */}
-                                {policyData.holidays.length === 0 && !showHolidayForm && (
-                                    <div className="text-center py-8 bg-gray-50 rounded-lg">
-                                        <div className="text-gray-500 text-lg mb-2">No holidays configured</div>
-                                        <p className="text-gray-400 text-sm mb-4">Add your first holiday to get started</p>
-                                        <button
-                                            onClick={() => setShowHolidayForm(true)}
-                                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                                        >
-                                            Add First Holiday
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Policy Not Created Message for Leave Types and Holidays tabs */}
-                    {(activeTab === 'leaves' || activeTab === 'holidays') && !policyExists && (
+                    {/* Policy Not Created Message for Leave Types */}
+                    {activeTab === 'leaves' && !policyExists && (
                         <div className="max-w-4xl mx-auto">
                             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
                                 <div className="text-yellow-800 text-lg font-medium mb-2">
                                     Leave Policy Not Created
                                 </div>
                                 <p className="text-yellow-700 mb-4">
-                                    Please create a leave policy first before managing {activeTab === 'leaves' ? 'leave types' : 'holidays'}.
+                                    Please create a leave policy first before managing leave types.
                                 </p>
                                 <div className="text-sm text-yellow-600">
                                     Go to the "Basic Policy" tab to set up your company's leave policy settings.

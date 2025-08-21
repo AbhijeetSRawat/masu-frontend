@@ -28,28 +28,12 @@ const AddLeave = () => {
   const dispatch = useDispatch();
 
   const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
 
   const weekDays = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
+    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
   ];
 
   const [leaveForm, setLeaveForm] = useState({
@@ -186,7 +170,7 @@ const AddLeave = () => {
       dispatch(setLoading(true));
       console.log("Fetching leaves for employee:", employee._id);
 
-      // Updated API call to match your backend structure
+      // Fixed API endpoint structure
       const result = await apiConnector(
         "GET",
         `${GET_EMPLOYEE_LEAVES}${company._id}/${employee._id}`,
@@ -269,19 +253,30 @@ const AddLeave = () => {
     );
   };
 
-  // Get leave balance for selected leave type
+  // Get leave balance for selected leave type - FIXED
   const getLeaveBalance = (shortCode) => {
     if (!shortCode || !leaves.length) return null;
 
     const selectedType = getAvailableLeaveTypes().find(type => type.shortCode === shortCode);
     if (!selectedType) return null;
 
-    const maxInstances = selectedType.maxPerYear || selectedType.maxInstancesPerYear || 0;
+    // Use maxInstancesPerYear from policy (correct field name)
+    const maxInstances = selectedType.maxInstancesPerYear || 0;
+    
+    // Calculate used days for current year
+    const currentYear = new Date().getFullYear();
+    const yearStart = new Date(currentYear, (leavePolicy?.yearStartMonth || 1) - 1, 1);
+    const yearEnd = new Date(currentYear + 1, (leavePolicy?.yearStartMonth || 1) - 1, 0);
+
     const usedDays = leaves
-      .filter(leave => 
-        leave.shortCode === shortCode && 
-        (leave.status === 'approved' || leave.status === 'pending')
-      )
+      .filter(leave => {
+        const leaveDate = new Date(leave.startDate);
+        return (
+          leave.shortCode === shortCode && 
+          (leave.status === 'approved' || leave.status === 'pending') &&
+          leaveDate >= yearStart && leaveDate <= yearEnd
+        );
+      })
       .reduce((total, leave) => total + (leave.days || 0), 0);
 
     return {
@@ -364,12 +359,6 @@ const AddLeave = () => {
       return false;
     }
 
-    // Check if documents are required
-    if (selectedType?.requiresDocs && selectedFiles.length === 0) {
-      toast.error(`Documents are required for ${selectedType.name}`);
-      return false;
-    }
-
     const days = leaveForm.isHalfDay
       ? 0.5
       : calculateBusinessDays(leaveForm.startDate, leaveForm.endDate);
@@ -377,6 +366,24 @@ const AddLeave = () => {
     if (days <= 0) {
       toast.error("No business days in selected range");
       return false;
+    }
+
+    // Check if documents are required - FIXED VALIDATION
+    if (selectedType?.requiresDocs) {
+      // Check if documents required after certain days
+      if (selectedType.docsRequiredAfterDays !== null && 
+          selectedType.docsRequiredAfterDays !== undefined && 
+          days > selectedType.docsRequiredAfterDays && 
+          selectedFiles.length === 0) {
+        toast.error(`Documents are required for ${selectedType.name} when leave exceeds ${selectedType.docsRequiredAfterDays} days`);
+        return false;
+      }
+      // If requiresDocs is true but no specific threshold, always require docs
+      else if ((selectedType.docsRequiredAfterDays === null || selectedType.docsRequiredAfterDays === undefined) && 
+               selectedFiles.length === 0) {
+        toast.error(`Documents are required for ${selectedType.name}`);
+        return false;
+      }
     }
 
     // Validate against leave type constraints
@@ -398,7 +405,7 @@ const AddLeave = () => {
 
     // Check leave balance
     const balance = getLeaveBalance(leaveForm.shortCode);
-    if (balance && days > balance.remaining) {
+    if (balance && balance.total > 0 && days > balance.remaining) {
       toast.error(
         `Insufficient leave balance. You have ${balance.remaining} days remaining for ${selectedType?.name}.`
       );
@@ -419,7 +426,7 @@ const AddLeave = () => {
       // Create FormData for file upload
       const formData = new FormData();
 
-      // Append basic leave data
+      // Append basic leave data - FIXED FIELD NAMES TO MATCH BACKEND
       formData.append("employeeId", employee._id);
       formData.append("companyId", company._id);
       formData.append("leaveType", leaveForm.leaveType);
@@ -427,8 +434,8 @@ const AddLeave = () => {
       formData.append("startDate", leaveForm.startDate);
       formData.append("endDate", leaveForm.endDate);
       formData.append("reason", leaveForm.reason.trim());
-      formData.append("isHalfDay", leaveForm.isHalfDay);
-      if (leaveForm.isHalfDay) {
+      formData.append("isHalfDay", leaveForm.isHalfDay.toString());
+      if (leaveForm.isHalfDay && leaveForm.halfDayType) {
         formData.append("halfDayType", leaveForm.halfDayType);
       }
 
@@ -474,7 +481,7 @@ const AddLeave = () => {
       endDate: "",
       reason: "",
       isHalfDay: false,
-      halfDayType: "",
+      halfDayType: null,
       documents: [],
     });
     setSelectedFiles([]);
@@ -623,7 +630,7 @@ const AddLeave = () => {
                               </span>{" "}
                               max per request
                             </p>
-                            {balance && (
+                            {balance && balance.total > 0 && (
                               <div className="text-sm mt-2">
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Balance:</span>
@@ -751,7 +758,7 @@ const AddLeave = () => {
                                       Documents:
                                     </span>
                                     {leaveType.requiresDocs
-                                      ? " Required"
+                                      ? ` Required${leaveType.docsRequiredAfterDays ? ` after ${leaveType.docsRequiredAfterDays} days` : ''}`
                                       : " Not required"}
                                   </p>
                                   <p>
@@ -801,6 +808,239 @@ const AddLeave = () => {
             )}
           </div>
         </div>
+
+        {/* Company Calendar Section */}
+<div className="px-4">
+  <div className="bg-gray-50 p-6 rounded-lg mt-6">
+    <h4 className="font-semibold text-gray-800 mb-4 text-center text-xl">
+      Company Calendar {new Date().getFullYear()}
+    </h4>
+    
+    {/* Calendar Grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {(() => {
+        const currentYear = new Date().getFullYear();
+        const weekDaysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        
+        // Helper function to get holidays for a specific date - FIXED
+        const getHolidayForDate = (date) => {
+          if (!leavePolicy?.holidays) return null;
+          
+          // Use local date formatting instead of ISO string to avoid timezone issues
+          const formatDateForComparison = (d) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          };
+          
+          const dateStr = formatDateForComparison(date);
+          
+          return leavePolicy.holidays.find(holiday => {
+            const holidayDate = new Date(holiday.date);
+            
+            if (holiday.recurring) {
+              // For recurring holidays, check month and day only
+              return holidayDate.getMonth() === date.getMonth() && 
+                     holidayDate.getDate() === date.getDate();
+            } else {
+              // For non-recurring holidays, check exact date using local formatting
+              const holidayStr = formatDateForComparison(holidayDate);
+              return holidayStr === dateStr;
+            }
+          });
+        };
+        
+        // Helper function to check if date is week off
+        const isWeekOff = (date) => {
+          const dayOfWeek = date.getDay();
+          return leavePolicy?.weekOff?.includes(dayOfWeek) || false;
+        };
+        
+        // Generate calendar for each month
+        return months.map((month, monthIndex) => {
+          const firstDay = new Date(currentYear, monthIndex, 1);
+          const lastDay = new Date(currentYear, monthIndex + 1, 0);
+          const daysInMonth = lastDay.getDate();
+          const startingDayOfWeek = firstDay.getDay();
+          
+          // Generate calendar days
+          const calendarDays = [];
+          
+          // Add empty cells for days before month starts
+          for (let i = 0; i < startingDayOfWeek; i++) {
+            calendarDays.push(null);
+          }
+          
+          // Add all days of the month
+          for (let day = 1; day <= daysInMonth; day++) {
+            const currentDate = new Date(currentYear, monthIndex, day);
+            const holiday = getHolidayForDate(currentDate);
+            const isWeekOffDay = isWeekOff(currentDate);
+            const isToday = currentDate.toDateString() === new Date().toDateString();
+            
+            calendarDays.push({
+              day,
+              date: currentDate,
+              holiday,
+              isWeekOff: isWeekOffDay,
+              isToday
+            });
+          }
+          
+          return (
+            <div key={monthIndex} className="bg-white rounded-lg border p-3">
+              {/* Month Header */}
+              <div className="text-center mb-3">
+                <h5 className="font-semibold text-gray-800 text-lg">{month}</h5>
+              </div>
+              
+              {/* Week Days Header */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {weekDaysShort.map(day => (
+                  <div key={day} className="text-center text-xs font-medium text-gray-600 py-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Calendar Days */}
+              <div className="grid grid-cols-7 gap-1">
+                {calendarDays.map((dayData, index) => {
+                  if (!dayData) {
+                    return <div key={index} className="h-8"></div>;
+                  }
+                  
+                  const { day, holiday, isWeekOff, isToday } = dayData;
+                  
+                  let dayClasses = "h-8 flex items-center justify-center text-xs rounded relative ";
+                  
+                  if (isToday) {
+                    dayClasses += "bg-blue-600 text-white font-bold ";
+                  } else if (holiday) {
+                    dayClasses += "bg-red-100 text-red-800 font-semibold ";
+                  } else if (isWeekOff) {
+                    dayClasses += "bg-gray-200 text-gray-600 ";
+                  } else {
+                    dayClasses += "text-gray-800 hover:bg-gray-50 ";
+                  }
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={dayClasses}
+                      title={holiday ? `${holiday.name}: ${holiday.description}` : isWeekOff ? 'Week Off' : ''}
+                    >
+                      <span>{day}</span>
+                      {holiday && (
+                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        });
+      })()}
+    </div>
+    
+    {/* Legend */}
+    <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 bg-blue-600 rounded"></div>
+        <span>Today</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 bg-red-100 border border-red-300 rounded relative">
+          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full"></div>
+        </div>
+        <span>Holidays ({leavePolicy?.holidays?.length || 0})</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 bg-gray-200 rounded"></div>
+        <span>Week Off ({leavePolicy?.weekOff?.map(day => weekDays[day]).join(', ') || 'None'})</span>
+      </div>
+    </div>
+    
+    {/* Holiday List - ALSO FIXED */}
+    {leavePolicy?.holidays && leavePolicy.holidays.length > 0 && (
+      <div className="mt-6">
+        <h5 className="font-semibold text-gray-800 mb-3">Holiday List {new Date().getFullYear()}</h5>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {leavePolicy.holidays
+            .sort((a, b) => {
+              const dateA = new Date(a.date);
+              const dateB = new Date(b.date);
+              // For recurring holidays, sort by month and day
+              if (a.recurring && b.recurring) {
+                if (dateA.getMonth() === dateB.getMonth()) {
+                  return dateA.getDate() - dateB.getDate();
+                }
+                return dateA.getMonth() - dateB.getMonth();
+              }
+              // For non-recurring, sort by actual date
+              return dateA - dateB;
+            })
+            .map((holiday, index) => {
+              const holidayDate = new Date(holiday.date);
+              let displayDate;
+              
+              if (holiday.recurring) {
+                // For recurring holidays, show with current year
+                displayDate = new Date(new Date().getFullYear(), holidayDate.getMonth(), holidayDate.getDate());
+              } else {
+                displayDate = holidayDate;
+              }
+              
+              const isPast = displayDate < new Date() && !isToday(displayDate);
+              
+              function isToday(date) {
+                const today = new Date();
+                return date.toDateString() === today.toDateString();
+              }
+              
+              return (
+                <div
+                  key={index}
+                  className={`p-3 rounded-lg border ${
+                    isPast ? 'bg-gray-50 text-gray-500' : 'bg-white'
+                  }`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h6 className="font-medium text-sm">{holiday.name}</h6>
+                      <p className="text-xs text-gray-600 mt-1">{holiday.description}</p>
+                      <p className="text-xs mt-1 text-blue-600">
+                        {displayDate.toLocaleDateString('en-IN', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      {holiday.recurring && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          Yearly
+                        </span>
+                      )}
+                      {isToday(displayDate) && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                          Today
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+    )}
+  </div>
+</div>
 
         <h2 className="text-3xl mt-4 font-semibold mb-6 text-center">
           Leave Applications
@@ -943,7 +1183,7 @@ const AddLeave = () => {
                             <option key={type.shortCode} value={type.shortCode}>
                               {type.name} ({type.shortCode})
                               {type.maxPerRequest && ` - Max: ${type.maxPerRequest} days`}
-                              {balance && ` - Balance: ${balance.remaining}`}
+                              {balance && balance.total > 0 && ` - Balance: ${balance.remaining}`}
                             </option>
                           );
                         })}
@@ -952,24 +1192,27 @@ const AddLeave = () => {
                         <div className="mt-1 text-xs">
                           {(() => {
                             const balance = getLeaveBalance(leaveForm.shortCode);
+                            const selectedType = getSelectedLeaveTypeDetails();
                             return (
                               <div className="space-y-1">
-                                {balance && (
+                                {balance && balance.total > 0 && (
                                   <p className={`${balance.remaining > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                     💰 Balance: {balance.remaining}/{balance.total} days
                                   </p>
                                 )}
-                                {getSelectedLeaveTypeDetails().requiresDocs && (
+                                {selectedType.requiresDocs && (
                                   <p className="text-yellow-600">
                                     📎 Documents required
+                                    {selectedType.docsRequiredAfterDays && 
+                                      ` (after ${selectedType.docsRequiredAfterDays} days)`}
                                   </p>
                                 )}
-                                {getSelectedLeaveTypeDetails().unpaid && (
+                                {selectedType.unpaid && (
                                   <p className="text-red-600">
                                     💰 This is unpaid leave
                                   </p>
                                 )}
-                                {!getSelectedLeaveTypeDetails().requiresApproval && (
+                                {!selectedType.requiresApproval && (
                                   <p className="text-green-600">✅ Auto-approved</p>
                                 )}
                               </div>
@@ -979,8 +1222,8 @@ const AddLeave = () => {
                       )}
                     </div>
 
-                    {/* Half Day Option
-                    <div className="mb-4">
+                    {/* Half Day Option */}
+                    {/* <div className="mb-4">
                       <label className="flex items-center">
                         <input
                           type="checkbox"
@@ -995,7 +1238,7 @@ const AddLeave = () => {
                         />
                         <span className="text-sm font-medium text-gray-700">Half Day Leave</span>
                       </label>
-                    </div>
+                    </div> */}
 
                     {/* Half Day Type */}
                     {/* {leaveForm.isHalfDay && (
@@ -1013,7 +1256,7 @@ const AddLeave = () => {
                           <option value="second-half">Second Half</option>
                         </select>
                       </div>
-                    )}  */}
+                    )} */}
 
                     {/* Start Date */}
                     <div className="mb-4">
@@ -1107,7 +1350,19 @@ const AddLeave = () => {
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Supporting Documents{" "}
-                          <span className="text-red-500">*</span>
+                          {(() => {
+                            const selectedType = getSelectedLeaveTypeDetails();
+                            const days = leaveForm.isHalfDay
+                              ? 0.5
+                              : calculateBusinessDays(leaveForm.startDate, leaveForm.endDate);
+                            
+                            if (selectedType.docsRequiredAfterDays !== null && 
+                                selectedType.docsRequiredAfterDays !== undefined && 
+                                days <= selectedType.docsRequiredAfterDays) {
+                              return "";
+                            }
+                            return <span className="text-red-500">*</span>;
+                          })()}
                         </label>
                         <input
                           id="document-upload"
@@ -1118,8 +1373,15 @@ const AddLeave = () => {
                           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Supported formats: PDF, JPG, PNG, DOC, DOCX (Max 5MB
-                          per file, Max 5 files)
+                          Supported formats: PDF, JPG, PNG, DOC, DOCX (Max 5MB per file, Max 5 files)
+                          {(() => {
+                            const selectedType = getSelectedLeaveTypeDetails();
+                            if (selectedType.docsRequiredAfterDays !== null && 
+                                selectedType.docsRequiredAfterDays !== undefined) {
+                              return ` - Required if leave exceeds ${selectedType.docsRequiredAfterDays} days`;
+                            }
+                            return "";
+                          })()}
                         </p>
 
                         {/* Selected Files Display */}
@@ -1262,18 +1524,18 @@ const AddLeave = () => {
                               Attached Documents
                             </label>
                             <div className="space-y-2">
-                              {selectedLeave.documents.map((docUrl, index) => (
+                              {selectedLeave.documents.map((doc, index) => (
                                 <div
                                   key={index}
                                   className="flex items-center justify-between bg-gray-50 p-2 rounded"
                                 >
                                   <span className="text-sm text-gray-700">
-                                    Document {index + 1}
+                                    {doc.name || `Document ${index + 1}`}
                                   </span>
                                   <button
                                     onClick={() =>
                                       window.open(
-                                        docUrl?.url,
+                                        doc.url,
                                         "_blank",
                                         "noopener,noreferrer"
                                       )
@@ -1296,7 +1558,9 @@ const AddLeave = () => {
                               : "Processed By"}
                           </label>
                           <p className="text-gray-800 font-medium">
-                            {selectedLeave.approvedBy?.profile?.firstName+" "+selectedLeave.approvedBy?.profile?.lastName || "System"}
+                            {selectedLeave.approvedBy?.profile?.firstName && selectedLeave.approvedBy?.profile?.lastName
+                              ? `${selectedLeave.approvedBy.profile.firstName} ${selectedLeave.approvedBy.profile.lastName}`
+                              : selectedLeave.approvedBy?.email || "System"}
                             {selectedLeave.approvedAt && (
                               <span className="text-gray-500 text-sm ml-2">
                                 on {formatDate(selectedLeave.approvedAt)}
@@ -1320,11 +1584,13 @@ const AddLeave = () => {
                       {selectedLeave.rejectedBy?.profile?.firstName && (
                         <div>
                           <label className="block text-sm font-medium text-gray-500">
-                            Rejected By:
+                            Rejected By
                           </label>
                           <p className="text-red-700 bg-red-50 p-3 rounded-lg">
-                            {selectedLeave.rejectedBy?.profile.firstName}{" "}{selectedLeave.rejectedBy?.profile.lastName || ""} <br />
-                            ({selectedLeave.rejectedBy?.profile.designation})
+                            {selectedLeave.rejectedBy.profile.firstName}{" "}
+                            {selectedLeave.rejectedBy.profile.lastName || ""} <br />
+                            {selectedLeave.rejectedBy.profile.designation && 
+                              `(${selectedLeave.rejectedBy.profile.designation})`}
                           </p>
                         </div>
                       )}

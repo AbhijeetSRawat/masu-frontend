@@ -84,7 +84,7 @@ const EmployeeSidebar = () => {
       <div key={index} className="w-full">
         <button
           onClick={() => toggleSection(heading)}
-          className="w-full flex justify-between items-center text-left pl-5 pr-3 py-2 font-semibold text-lg hover:text-blue-300 transition-colors duration-200"
+          className="w-full flex justify-between items-center text-left pl-5 pr-3 py-2 font-semibold text-xl hover:text-blue-300 transition-colors duration-200"
         >
           <span>{heading}</span>
           {expanded[heading] ? (
@@ -99,7 +99,7 @@ const EmployeeSidebar = () => {
             {items.map((item, i) => (
               <div
                 key={i}
-                className="text-sm hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
+                className="text-lg hover:text-blue-200 cursor-pointer py-1 transition-colors duration-200"
                 onClick={() => navigate(item.link)}
               >
                 {item.name}
@@ -147,7 +147,7 @@ const EmployeeSidebar = () => {
         </div>
 
         {/* Navigation */}
-        <div className="w-full flex flex-col items-start px-4 text-white text-sm gap-1 flex-1">
+        <div className="w-full flex flex-col items-start px-4 text-white text-lg gap-1 flex-1">
           {renderTabs()}
         </div>
 
