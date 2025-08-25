@@ -20,7 +20,7 @@ const {
 
 const LeaveApproval = () => {
   const company = useSelector((state) => state.permissions.company);
-  const token = useSelector((state) => state.auth.token); // Added missing token
+  const token = useSelector((state) => state.auth.token);
   const [leaves, setLeaves] = useState([]);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -165,6 +165,28 @@ const LeaveApproval = () => {
     }
   };
 
+  // Helper function to format leave types from breakup array
+  const formatLeaveTypes = (leaveBreakup) => {
+    if (!leaveBreakup || leaveBreakup.length === 0) return "—";
+    
+    return leaveBreakup
+      .map(item => `${item.leaveType} (${item.days})`)
+      .join(", ");
+  };
+
+  // Helper function to get primary leave type for display
+  const getPrimaryLeaveType = (leaveBreakup) => {
+    if (!leaveBreakup || leaveBreakup.length === 0) return "—";
+    
+    // If single leave type, return it
+    if (leaveBreakup.length === 1) {
+      return leaveBreakup[0].leaveType;
+    }
+    
+    // If multiple, show "Mixed" or first type with count
+    return `Mixed (${leaveBreakup.length} types)`;
+  };
+
   useEffect(() => {
     if (company?._id && token) {
       fetchLeaves(statusFilter, 1);
@@ -216,11 +238,6 @@ const LeaveApproval = () => {
                 ))}
               </div>
 
-              {/* Pagination Info */}
-              {/* <div className="mb-4 text-sm text-gray-600">
-                Showing {leaves.length} of {pagination.total} {statusFilter} leaves
-              </div> */}
-
               {/* Table */}
               <div className="overflow-x-auto">
                 <table className="min-w-full table-fixed border text-sm text-left">
@@ -228,9 +245,9 @@ const LeaveApproval = () => {
                     <tr>
                       <th className="w-12 px-4 py-2">Sr.</th>
                       <th className="w-32 px-4 py-2">Employee</th>
-                      <th className="w-28 px-4 py-2">Type</th>
+                      <th className="w-32 px-4 py-2">Leave Types</th>
                       <th className="w-64 px-4 py-2">Reason</th>
-                      <th className="w-20 px-4 py-2">Days</th>
+                      <th className="w-20 px-4 py-2">Total Days</th>
                       <th className="w-36 px-4 py-2">Start</th>
                       <th className="w-36 px-4 py-2">End</th>
                       <th className="w-24 px-4 py-2">Status</th>
@@ -255,13 +272,17 @@ const LeaveApproval = () => {
                               ? `${leave.employee.user.profile.firstName} ${leave.employee.user.profile.lastName || ""}`
                               : "—"}
                           </td>
-                          <td className="px-4 py-2 capitalize">{leave.leaveType}</td>
+                          <td className="px-4 py-2 capitalize">
+                            <div className="truncate" title={formatLeaveTypes(leave.leaveBreakup)}>
+                              {getPrimaryLeaveType(leave.leaveBreakup)}
+                            </div>
+                          </td>
                           <td className="px-4 py-2">
                             <div className="truncate" title={leave.reason}>
                               {leave.reason}
                             </div>
                           </td>
-                          <td className="px-4 py-2">{leave.days}</td>
+                          <td className="px-4 py-2">{leave.totalDays || "—"}</td>
                           <td className="px-4 py-2">
                             {new Date(leave.startDate).toLocaleDateString()}
                           </td>
@@ -335,16 +356,29 @@ const LeaveApproval = () => {
                       {selectedLeave.employee?.user?.email || "—"}
                     </p>
 
-                    <p>
-                      <strong>Type:</strong> {selectedLeave.leaveType}
-                    </p>
+                    {/* Updated Leave Types Display */}
+                    <div>
+                      <strong>Leave Types:</strong>
+                      {selectedLeave.leaveBreakup && selectedLeave.leaveBreakup.length > 0 ? (
+                        <ul className="mt-2 ml-4">
+                          {selectedLeave.leaveBreakup.map((item, index) => (
+                            <li key={index} className="flex justify-between">
+                              <span>{item.leaveType} ({item.shortCode})</span>
+                              <span>{item.days} days</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span> —</span>
+                      )}
+                    </div>
                     
                     <p>
                       <strong>Reason:</strong> {selectedLeave.reason}
                     </p>
                     
                     <p>
-                      <strong>Days:</strong> {selectedLeave.days}
+                      <strong>Total Days:</strong> {selectedLeave.totalDays || "—"}
                     </p>
                     
                     <p>

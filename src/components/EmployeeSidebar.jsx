@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import logo from "../assets/images/WhatsApp Image 2025-06-30 at 16.52.32_498f8c48.jpg";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { IoIosClose, IoIosLogOut } from "react-icons/io";
 import {
@@ -22,6 +22,7 @@ const EmployeeSidebar = () => {
   const [expanded, setExpanded] = useState({});
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const role = useSelector((state) => state.auth.role);
 
   const tabs = {
     Dashboard: [{ name: "Employee Dashboard", link: "/employeepanel" }],
@@ -52,10 +53,14 @@ const EmployeeSidebar = () => {
     ],
     Policies: [{ name: "Policy", link: "/employeepolicy" }],
     "On Boarding and Exit": [
+      
       {
         name: "Resignation Submission & Notice Period",
         link: "/resignationsubmission",
       },
+    ],
+    "Upload Documents" : [
+       { name: "Upload Documents", link: "/uploaddocuments" },
     ],
     "Performance & Reports": [
       { name: "Self Evaluation & KRA", link: "/selfevaluation" },
@@ -79,8 +84,19 @@ const EmployeeSidebar = () => {
     toast.success("You have logged out successfully!");
   };
 
+  // 🔍 Filter tabs based on role
+  const filteredTabs = Object.entries(tabs).filter(([heading]) => {
+    if (role === "newjoiner") {
+      return heading === "My Profile" || heading === "Upload Documents";
+    }
+    if (role === "employee") {
+      return heading !== "Upload Documents";
+    }
+    return true; // default: show all
+  });
+
   const renderTabs = () =>
-    Object.entries(tabs).map(([heading, items], index) => (
+    filteredTabs.map(([heading, items], index) => (
       <div key={index} className="w-full">
         <button
           onClick={() => toggleSection(heading)}

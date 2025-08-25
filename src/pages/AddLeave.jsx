@@ -36,14 +36,14 @@ const AddLeave = () => {
     "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
   ];
 
+  // Updated form structure for combination leaves
   const [leaveForm, setLeaveForm] = useState({
-    leaveType: "",
-    shortCode: "",
     startDate: "",
     endDate: "",
     reason: "",
     isHalfDay: false,
     halfDayType: null,
+    leaveBreakup: [], // Array of { leaveType, shortCode, days }
     documents: [],
   });
 
@@ -77,10 +77,8 @@ const AddLeave = () => {
     const files = Array.from(e.target.files);
 
     try {
-      // Validate each file
       files.forEach(validateFile);
 
-      // Limit to 5 files maximum
       if (files.length > 5) {
         toast.error("Maximum 5 files allowed");
         return;
@@ -94,7 +92,7 @@ const AddLeave = () => {
       }
     } catch (error) {
       toast.error(error.message);
-      e.target.value = ""; // Reset file input
+      e.target.value = "";
     }
   };
 
@@ -104,7 +102,6 @@ const AddLeave = () => {
     setSelectedFiles(updatedFiles);
     setLeaveForm((prev) => ({ ...prev, documents: updatedFiles }));
 
-    // Reset file input
     const fileInput = document.getElementById("document-upload");
     if (fileInput) fileInput.value = "";
   };
@@ -121,8 +118,7 @@ const AddLeave = () => {
     let count = 0;
     const current = new Date(start);
 
-    // Get weekOff days from policy or default to weekend
-    const weekOffDays = leavePolicy?.weekOff || [0, 6]; // Sunday and Saturday
+  const weekOffDays = leavePolicy.includeWeekOff ? [] : leavePolicy?.weekOff ;
 
     while (current <= end) {
       const day = current.getDay();
@@ -135,26 +131,162 @@ const AddLeave = () => {
     return count;
   };
 
-  // Auto-calculate days when dates change
+  // Get available leave types for dropdown
+  const getAvailableLeaveTypes = () => {
+    if (
+      leavePolicy &&
+      leavePolicy.leaveTypes &&
+      leavePolicy.leaveTypes.length > 0
+    ) {
+      return leavePolicy.leaveTypes.filter((type) => type.isActive !== false);
+    }
+    return [
+      { shortCode: "CL", name: "Casual Leave" },
+      { shortCode: "SL", name: "Sick Leave" },
+      { shortCode: "EL", name: "Earned Leave" },
+    ];
+  };
+
+  // Get leave balance for a specific leave type
+  const getLeaveBalance = (shortCode) => {
+    if (!shortCode || !leaves.length) return null;
+
+    const selectedType = getAvailableLeaveTypes().find(type => type.shortCode === shortCode);
+    if (!selectedType) return null;
+
+    const maxInstances = selectedType.maxInstancesPerYear || 0;
+    
+    const currentYear = new Date().getFullYear();
+    const yearStart = new Date(currentYear, (leavePolicy?.yearStartMonth || 1) - 1, 1);
+    const yearEnd = new Date(currentYear + 1, (leavePolicy?.yearStartMonth || 1) - 1, 0);
+
+    // Calculate used days from leaveBreakup array
+    const usedDays = leaves
+      .filter(leave => {
+        const leaveDate = new Date(leave.startDate);
+        return (
+          (leave.status === 'approved' || leave.status === 'pending') &&
+          leaveDate >= yearStart && leaveDate <= yearEnd
+        );
+      })
+      .reduce((total, leave) => {
+        // Sum days from leaveBreakup array for this shortCode
+        const breakupDays = leave.leaveBreakup
+          ?.filter(breakup => breakup.shortCode === shortCode)
+          ?.reduce((sum, breakup) => sum + (breakup.days || 0), 0) || 0;
+        return total + breakupDays;
+      }, 0);
+
+    return {
+      total: maxInstances,
+      used: usedDays,
+      remaining: maxInstances - usedDays
+    };
+  };
+
+  // Add a new leave type to the breakup
+  const addLeaveBreakup = () => {
+    const availableTypes = getAvailableLeaveTypes();
+    if (availableTypes.length === 0) {
+      toast.error("No leave types available");
+      return;
+    }
+
+    const newBreakup = {
+      leaveType: availableTypes[0].name,
+      shortCode: availableTypes[0].shortCode,
+      days: 1,
+    };
+
+    setLeaveForm(prev => ({
+      ...prev,
+      leaveBreakup: [...prev.leaveBreakup, newBreakup]
+    }));
+  };
+
+  // Remove a leave breakup entry
+  const removeLeaveBreakup = (index) => {
+    setLeaveForm(prev => ({
+      ...prev,
+      leaveBreakup: prev.leaveBreakup.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Update a specific breakup entry
+  const updateLeaveBreakup = (index, field, value) => {
+    setLeaveForm(prev => ({
+      ...prev,
+      leaveBreakup: prev.leaveBreakup.map((item, i) => {
+        if (i === index) {
+          if (field === 'shortCode') {
+            // When shortCode changes, update leaveType too
+            const selectedType = getAvailableLeaveTypes().find(type => type.shortCode === value);
+            return {
+              ...item,
+              shortCode: value,
+              leaveType: selectedType?.name || item.leaveType
+            };
+          }
+          return { ...item, [field]: value };
+        }
+        return item;
+      })
+    }));
+  };
+
+  // Get total days from breakup
+  const getTotalBreakupDays = () => {
+    return leaveForm.leaveBreakup.reduce((total, item) => total + (parseFloat(item.days) || 0), 0);
+  };
+
+  // Check if documents are required for any leave type in breakup
+  const areDocumentsRequired = () => {
+    const totalDays = getTotalBreakupDays();
+    
+    return leaveForm.leaveBreakup.some(breakup => {
+      const leaveType = getAvailableLeaveTypes().find(type => type.shortCode === breakup.shortCode);
+      if (!leaveType?.requiresDocs) return false;
+      
+      if (leaveType.docsRequiredAfterDays !== null && 
+          leaveType.docsRequiredAfterDays !== undefined) {
+        return totalDays > leaveType.docsRequiredAfterDays;
+      }
+      return true; // Always required if no threshold specified
+    });
+  };
+
+  // Auto-calculate and validate days when dates change
   useEffect(() => {
     if (leaveForm.startDate && leaveForm.endDate) {
       if (leaveForm.isHalfDay) {
-        // For half day, start and end date should be same
         if (leaveForm.startDate === leaveForm.endDate) {
-          // Days will be set to 0.5 in backend
+          // For half day, ensure total breakup is 0.5
+          if (getTotalBreakupDays() !== 0.5) {
+            toast.success("Adjusting leave breakup for half day (0.5 days total)");
+            // Auto-adjust first breakup to 0.5 days
+            if (leaveForm.leaveBreakup.length > 0) {
+              updateLeaveBreakup(0, 'days', 0.5);
+              // Remove other breakups for half day
+              setLeaveForm(prev => ({
+                ...prev,
+                leaveBreakup: prev.leaveBreakup.slice(0, 1)
+              }));
+            }
+          }
         } else {
-          toast.error(
-            "For half day leave, start and end date must be the same"
-          );
+          toast.error("For half day leave, start and end date must be the same");
           setLeaveForm((prev) => ({ ...prev, endDate: prev.startDate }));
         }
       } else {
-        const days = calculateBusinessDays(
-          leaveForm.startDate,
-          leaveForm.endDate
-        );
-        if (days <= 0) {
+        const businessDays = calculateBusinessDays(leaveForm.startDate, leaveForm.endDate);
+        if (businessDays <= 0) {
           toast.error("No business days found in the selected date range");
+        } else {
+          // Show info about total business days
+          const totalBreakup = getTotalBreakupDays();
+          if (totalBreakup !== businessDays && totalBreakup > 0) {
+            toast.success(`Business days: ${businessDays}. Current breakup total: ${totalBreakup}`);
+          }
         }
       }
     }
@@ -162,6 +294,7 @@ const AddLeave = () => {
     leaveForm.startDate,
     leaveForm.endDate,
     leaveForm.isHalfDay,
+    leaveForm.leaveBreakup,
     leavePolicy,
   ]);
 
@@ -170,7 +303,6 @@ const AddLeave = () => {
       dispatch(setLoading(true));
       console.log("Fetching leaves for employee:", employee._id);
 
-      // Fixed API endpoint structure
       const result = await apiConnector(
         "GET",
         `${GET_EMPLOYEE_LEAVES}${company._id}/${employee._id}`,
@@ -203,18 +335,6 @@ const AddLeave = () => {
       if (res.data.success && res.data.policy) {
         setLeavePolicy(res.data.policy);
         console.log("Leave policy fetched:", res.data.policy);
-
-        // Set default leave type if available
-        const activeTypes = res.data.policy.leaveTypes.filter(
-          (type) => type.isActive !== false
-        );
-        if (activeTypes.length > 0 && !leaveForm.leaveType) {
-          setLeaveForm((prev) => ({
-            ...prev,
-            leaveType: activeTypes[0].name,
-            shortCode: activeTypes[0].shortCode,
-          }));
-        }
       } else {
         setLeavePolicy(null);
         console.log("No leave policy found");
@@ -226,64 +346,6 @@ const AddLeave = () => {
     } finally {
       dispatch(setLoading(false));
     }
-  };
-
-  // Get available leave types for the dropdown
-  const getAvailableLeaveTypes = () => {
-    if (
-      leavePolicy &&
-      leavePolicy.leaveTypes &&
-      leavePolicy.leaveTypes.length > 0
-    ) {
-      return leavePolicy.leaveTypes.filter((type) => type.isActive !== false);
-    }
-    // Fallback to default types if no policy
-    return [
-      { shortCode: "CL", name: "Casual Leave" },
-      { shortCode: "SL", name: "Sick Leave" },
-      { shortCode: "EL", name: "Earned Leave" },
-    ];
-  };
-
-  // Get selected leave type details
-  const getSelectedLeaveTypeDetails = () => {
-    const availableTypes = getAvailableLeaveTypes();
-    return availableTypes.find(
-      (type) => type.shortCode === leaveForm.shortCode
-    );
-  };
-
-  // Get leave balance for selected leave type - FIXED
-  const getLeaveBalance = (shortCode) => {
-    if (!shortCode || !leaves.length) return null;
-
-    const selectedType = getAvailableLeaveTypes().find(type => type.shortCode === shortCode);
-    if (!selectedType) return null;
-
-    // Use maxInstancesPerYear from policy (correct field name)
-    const maxInstances = selectedType.maxInstancesPerYear || 0;
-    
-    // Calculate used days for current year
-    const currentYear = new Date().getFullYear();
-    const yearStart = new Date(currentYear, (leavePolicy?.yearStartMonth || 1) - 1, 1);
-    const yearEnd = new Date(currentYear + 1, (leavePolicy?.yearStartMonth || 1) - 1, 0);
-
-    const usedDays = leaves
-      .filter(leave => {
-        const leaveDate = new Date(leave.startDate);
-        return (
-          leave.shortCode === shortCode && 
-          (leave.status === 'approved' || leave.status === 'pending') &&
-          leaveDate >= yearStart && leaveDate <= yearEnd
-        );
-      })
-      .reduce((total, leave) => total + (leave.days || 0), 0);
-
-    return {
-      total: maxInstances,
-      used: usedDays,
-      remaining: maxInstances - usedDays
-    };
   };
 
   const handleView = (leave) => {
@@ -309,7 +371,7 @@ const AddLeave = () => {
 
       if (result.data.success) {
         toast.success("Leave cancelled successfully!");
-        getEmployeeLeaves(); // Refresh the list
+        getEmployeeLeaves();
       } else {
         toast.error(result.data.message || "Failed to cancel leave");
       }
@@ -322,18 +384,6 @@ const AddLeave = () => {
   };
 
   const validateForm = () => {
-    const selectedType = getSelectedLeaveTypeDetails();
-
-    if (!leaveForm.leaveType) {
-      toast.error("Please select a leave type");
-      return false;
-    }
-
-    if (!leaveForm.shortCode) {
-      toast.error("Please select a leave type short code");
-      return false;
-    }
-
     if (!leaveForm.startDate) {
       toast.error("Please select start date");
       return false;
@@ -349,6 +399,46 @@ const AddLeave = () => {
       return false;
     }
 
+    if (leaveForm.leaveBreakup.length === 0) {
+      toast.error("Please add at least one leave type");
+      return false;
+    }
+
+    // Validate each breakup entry
+    for (let i = 0; i < leaveForm.leaveBreakup.length; i++) {
+      const breakup = leaveForm.leaveBreakup[i];
+      
+      if (!breakup.leaveType || !breakup.shortCode) {
+        toast.error(`Please select leave type for entry ${i + 1}`);
+        return false;
+      }
+
+      if (!breakup.days || breakup.days <= 0) {
+        toast.error(`Please enter valid days for ${breakup.leaveType}`);
+        return false;
+      }
+
+      // Check balance
+      const balance = getLeaveBalance(breakup.shortCode);
+      if (balance && balance.total > 0 && breakup.days > balance.remaining) {
+        toast.error(`Insufficient balance for ${breakup.leaveType}. Remaining: ${balance.remaining} days`);
+        return false;
+      }
+
+      // Check leave type constraints
+      const leaveType = getAvailableLeaveTypes().find(type => type.shortCode === breakup.shortCode);
+      if (leaveType) {
+        if (breakup.days > leaveType.maxPerRequest) {
+          toast.error(`${breakup.leaveType} exceeds maximum ${leaveType.maxPerRequest} days per request`);
+          return false;
+        }
+        if (breakup.days < leaveType.minPerRequest) {
+          toast.error(`${breakup.leaveType} requires minimum ${leaveType.minPerRequest} days`);
+          return false;
+        }
+      }
+    }
+
     if (leaveForm.isHalfDay && !leaveForm.halfDayType) {
       toast.error("Please select half day type");
       return false;
@@ -359,56 +449,21 @@ const AddLeave = () => {
       return false;
     }
 
-    const days = leaveForm.isHalfDay
-      ? 0.5
+    // Validate total days match business days
+    const businessDays = leaveForm.isHalfDay 
+      ? 0.5 
       : calculateBusinessDays(leaveForm.startDate, leaveForm.endDate);
 
-    if (days <= 0) {
-      toast.error("No business days in selected range");
+    const totalBreakupDays = getTotalBreakupDays();
+
+    if (Math.abs(totalBreakupDays - businessDays) > 0.001) { // Allow for floating point precision
+      toast.error(`Leave breakup total (${totalBreakupDays}) must equal business days (${businessDays})`);
       return false;
     }
 
-    // Check if documents are required - FIXED VALIDATION
-    if (selectedType?.requiresDocs) {
-      // Check if documents required after certain days
-      if (selectedType.docsRequiredAfterDays !== null && 
-          selectedType.docsRequiredAfterDays !== undefined && 
-          days > selectedType.docsRequiredAfterDays && 
-          selectedFiles.length === 0) {
-        toast.error(`Documents are required for ${selectedType.name} when leave exceeds ${selectedType.docsRequiredAfterDays} days`);
-        return false;
-      }
-      // If requiresDocs is true but no specific threshold, always require docs
-      else if ((selectedType.docsRequiredAfterDays === null || selectedType.docsRequiredAfterDays === undefined) && 
-               selectedFiles.length === 0) {
-        toast.error(`Documents are required for ${selectedType.name}`);
-        return false;
-      }
-    }
-
-    // Validate against leave type constraints
-    if (selectedType) {
-      if (days > selectedType.maxPerRequest) {
-        toast.error(
-          `Maximum ${selectedType.maxPerRequest} days allowed per request for ${selectedType.name}`
-        );
-        return false;
-      }
-
-      if (days < selectedType.minPerRequest) {
-        toast.error(
-          `Minimum ${selectedType.minPerRequest} days required for ${selectedType.name}`
-        );
-        return false;
-      }
-    }
-
-    // Check leave balance
-    const balance = getLeaveBalance(leaveForm.shortCode);
-    if (balance && balance.total > 0 && days > balance.remaining) {
-      toast.error(
-        `Insufficient leave balance. You have ${balance.remaining} days remaining for ${selectedType?.name}.`
-      );
+    // Check document requirements
+    if (areDocumentsRequired() && selectedFiles.length === 0) {
+      toast.error("Documents are required for one or more selected leave types");
       return false;
     }
 
@@ -423,70 +478,103 @@ const AddLeave = () => {
     try {
       dispatch(setLoading(true));
 
-      // Create FormData for file upload
-      const formData = new FormData();
+      // Create the base payload object
+      const payload = {
+        employeeId: employee._id,
+        companyId: company._id,
+        startDate: leaveForm.startDate,
+        endDate: leaveForm.endDate,
+        reason: leaveForm.reason.trim(),
+        isHalfDay: leaveForm.isHalfDay,
+        leaveBreakup: leaveForm.leaveBreakup.map(breakup => ({
+          leaveType: breakup.leaveType,
+          shortCode: breakup.shortCode,
+          days: Number(breakup.days)
+        }))
+      };
 
-      // Append basic leave data - FIXED FIELD NAMES TO MATCH BACKEND
-      formData.append("employeeId", employee._id);
-      formData.append("companyId", company._id);
-      formData.append("leaveType", leaveForm.leaveType);
-      formData.append("shortCode", leaveForm.shortCode);
-      formData.append("startDate", leaveForm.startDate);
-      formData.append("endDate", leaveForm.endDate);
-      formData.append("reason", leaveForm.reason.trim());
-      formData.append("isHalfDay", leaveForm.isHalfDay.toString());
+      // Add halfDayType if it's a half day leave
       if (leaveForm.isHalfDay && leaveForm.halfDayType) {
-        formData.append("halfDayType", leaveForm.halfDayType);
+        payload.halfDayType = leaveForm.halfDayType;
       }
 
-      // Append documents if any
+      // If there are documents, use FormData
       if (selectedFiles.length > 0) {
-        selectedFiles.forEach((file) => {
-          formData.append("documents", file);
+        const formData = new FormData();
+
+        // Append JSON data
+        Object.keys(payload).forEach(key => {
+          if (key === 'leaveBreakup') {
+            formData.append(key, JSON.stringify(payload[key]));
+          } else {
+            formData.append(key, payload[key]);
+          }
         });
-      }
 
-      console.log("Submitting leave application with FormData");
+        // Append documents
+        selectedFiles.forEach(file => {
+          formData.append('documents', file);
+        });
 
-      // Make API call with FormData
-      const result = await apiConnector("POST", APPLY_LEAVE, formData, {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      });
+        const result = await apiConnector(
+          "POST",
+          APPLY_LEAVE,
+          formData,
+          {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          }
+        );
 
-      if (result.data.success) {
-        toast.success(result.data.message || "Leave applied successfully!");
-        getEmployeeLeaves(); // Refresh the list
-        resetForm();
-        setIsAddModalOpen(false);
+        handleApiResponse(result);
       } else {
-        toast.error(result.data.message || "Failed to apply leave");
+        // If no documents, send JSON directly
+        const result = await apiConnector(
+          "POST",
+          APPLY_LEAVE,
+          payload,
+          {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          }
+        );
+
+        handleApiResponse(result);
       }
+
     } catch (error) {
       console.error("Error applying leave:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to submit leave application";
+      const errorMessage = error.response?.data?.message || "Failed to submit leave application";
       toast.error(errorMessage);
     } finally {
       dispatch(setLoading(false));
     }
   };
 
+  // Helper function to handle API response
+  const handleApiResponse = (result) => {
+    if (result.data.success) {
+      toast.success(result.data.message || "Leave application submitted successfully!");
+      getEmployeeLeaves(); // Refresh leave list
+      resetForm();
+      setIsAddModalOpen(false);
+    } else {
+      toast.error(result.data.message || "Failed to apply leave");
+    }
+  };
+
   const resetForm = () => {
-    const availableTypes = getAvailableLeaveTypes();
     setLeaveForm({
-      leaveType: availableTypes.length > 0 ? availableTypes[0].name : "",
-      shortCode: availableTypes.length > 0 ? availableTypes[0].shortCode : "",
       startDate: "",
       endDate: "",
       reason: "",
       isHalfDay: false,
       halfDayType: null,
+      leaveBreakup: [],
       documents: [],
     });
     setSelectedFiles([]);
 
-    // Reset file input
     const fileInput = document.getElementById("document-upload");
     if (fileInput) fileInput.value = "";
   };
@@ -534,7 +622,6 @@ const AddLeave = () => {
     }
   }, [employee, company]);
 
-  // Reset form when modal opens
   useEffect(() => {
     if (isAddModalOpen) {
       resetForm();
@@ -545,10 +632,9 @@ const AddLeave = () => {
     <div className="relative">
       <EmployeeSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw] pr-4 pb-10">
-        {/* Employee panel bar */}
         <EmployeeHeader />
 
-        {/* Leave Policy Display Section */}
+        {/* Leave Policy Display Section - Same as before */}
         <div className="px-4 pt-4">
           <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
@@ -565,7 +651,7 @@ const AddLeave = () => {
 
             {leavePolicy ? (
               <div>
-                {/* Basic Policy Info - Always Visible */}
+                {/* Basic Policy Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-semibold text-blue-800 mb-2">
@@ -596,7 +682,7 @@ const AddLeave = () => {
                   </div>
                 </div>
 
-                {/* Leave Types Summary with Balance - Always Visible */}
+                {/* Leave Types Summary with Balance */}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <h4 className="font-semibold text-gray-800 mb-3">
                     Available Leave Types with Balance (
@@ -668,7 +754,7 @@ const AddLeave = () => {
                   </div>
                 </div>
 
-                {/* Detailed Policy Information - Toggle Visibility */}
+                {/* Detailed Policy Information - Same as before */}
                 {showPolicyDetails && (
                   <div className="border-t pt-4">
                     <h4 className="font-semibold text-gray-800 mb-4">
@@ -702,7 +788,6 @@ const AddLeave = () => {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {/* Request Limits */}
                               <div>
                                 <h6 className="font-medium text-gray-700 mb-2">
                                   Request Limits
@@ -739,7 +824,6 @@ const AddLeave = () => {
                                 </div>
                               </div>
 
-                              {/* Approval & Documents */}
                               <div>
                                 <h6 className="font-medium text-gray-700 mb-2">
                                   Approval & Documents
@@ -768,7 +852,6 @@ const AddLeave = () => {
                                 </div>
                               </div>
 
-                              {/* Eligibility */}
                               <div>
                                 <h6 className="font-medium text-gray-700 mb-2">
                                   Eligibility
@@ -809,238 +892,147 @@ const AddLeave = () => {
           </div>
         </div>
 
-        {/* Company Calendar Section */}
-<div className="px-4">
-  <div className="bg-gray-50 p-6 rounded-lg mt-6">
-    <h4 className="font-semibold text-gray-800 mb-4 text-center text-xl">
-      Company Calendar {new Date().getFullYear()}
-    </h4>
-    
-    {/* Calendar Grid */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {(() => {
-        const currentYear = new Date().getFullYear();
-        const weekDaysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        
-        // Helper function to get holidays for a specific date - FIXED
-        const getHolidayForDate = (date) => {
-          if (!leavePolicy?.holidays) return null;
-          
-          // Use local date formatting instead of ISO string to avoid timezone issues
-          const formatDateForComparison = (d) => {
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-          };
-          
-          const dateStr = formatDateForComparison(date);
-          
-          return leavePolicy.holidays.find(holiday => {
-            const holidayDate = new Date(holiday.date);
+        {/* Company Calendar Section - Same as before */}
+        <div className="px-4">
+          <div className="bg-gray-50 p-6 rounded-lg mt-6">
+            <h4 className="font-semibold text-gray-800 mb-4 text-center text-xl">
+              Company Calendar {new Date().getFullYear()}
+            </h4>
             
-            if (holiday.recurring) {
-              // For recurring holidays, check month and day only
-              return holidayDate.getMonth() === date.getMonth() && 
-                     holidayDate.getDate() === date.getDate();
-            } else {
-              // For non-recurring holidays, check exact date using local formatting
-              const holidayStr = formatDateForComparison(holidayDate);
-              return holidayStr === dateStr;
-            }
-          });
-        };
-        
-        // Helper function to check if date is week off
-        const isWeekOff = (date) => {
-          const dayOfWeek = date.getDay();
-          return leavePolicy?.weekOff?.includes(dayOfWeek) || false;
-        };
-        
-        // Generate calendar for each month
-        return months.map((month, monthIndex) => {
-          const firstDay = new Date(currentYear, monthIndex, 1);
-          const lastDay = new Date(currentYear, monthIndex + 1, 0);
-          const daysInMonth = lastDay.getDate();
-          const startingDayOfWeek = firstDay.getDay();
-          
-          // Generate calendar days
-          const calendarDays = [];
-          
-          // Add empty cells for days before month starts
-          for (let i = 0; i < startingDayOfWeek; i++) {
-            calendarDays.push(null);
-          }
-          
-          // Add all days of the month
-          for (let day = 1; day <= daysInMonth; day++) {
-            const currentDate = new Date(currentYear, monthIndex, day);
-            const holiday = getHolidayForDate(currentDate);
-            const isWeekOffDay = isWeekOff(currentDate);
-            const isToday = currentDate.toDateString() === new Date().toDateString();
-            
-            calendarDays.push({
-              day,
-              date: currentDate,
-              holiday,
-              isWeekOff: isWeekOffDay,
-              isToday
-            });
-          }
-          
-          return (
-            <div key={monthIndex} className="bg-white rounded-lg border p-3">
-              {/* Month Header */}
-              <div className="text-center mb-3">
-                <h5 className="font-semibold text-gray-800 text-lg">{month}</h5>
-              </div>
-              
-              {/* Week Days Header */}
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {weekDaysShort.map(day => (
-                  <div key={day} className="text-center text-xs font-medium text-gray-600 py-1">
-                    {day}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Calendar Days */}
-              <div className="grid grid-cols-7 gap-1">
-                {calendarDays.map((dayData, index) => {
-                  if (!dayData) {
-                    return <div key={index} className="h-8"></div>;
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {(() => {
+                const currentYear = new Date().getFullYear();
+                const weekDaysShort = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                
+                const getHolidayForDate = (date) => {
+                  if (!leavePolicy?.holidays) return null;
+                  
+                  const formatDateForComparison = (d) => {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                  };
+                  
+                  const dateStr = formatDateForComparison(date);
+                  
+                  return leavePolicy.holidays.find(holiday => {
+                    const holidayDate = new Date(holiday.date);
+                    
+                    if (holiday.recurring) {
+                      return holidayDate.getMonth() === date.getMonth() && 
+                             holidayDate.getDate() === date.getDate();
+                    } else {
+                      const holidayStr = formatDateForComparison(holidayDate);
+                      return holidayStr === dateStr;
+                    }
+                  });
+                };
+                
+                const isWeekOff = (date) => {
+                  const dayOfWeek = date.getDay();
+                  return leavePolicy?.weekOff?.includes(dayOfWeek) || false;
+                };
+                
+                return months.map((month, monthIndex) => {
+                  const firstDay = new Date(currentYear, monthIndex, 1);
+                  const lastDay = new Date(currentYear, monthIndex + 1, 0);
+                  const daysInMonth = lastDay.getDate();
+                  const startingDayOfWeek = firstDay.getDay();
+                  
+                  const calendarDays = [];
+                  
+                  for (let i = 0; i < startingDayOfWeek; i++) {
+                    calendarDays.push(null);
                   }
                   
-                  const { day, holiday, isWeekOff, isToday } = dayData;
-                  
-                  let dayClasses = "h-8 flex items-center justify-center text-xs rounded relative ";
-                  
-                  if (isToday) {
-                    dayClasses += "bg-blue-600 text-white font-bold ";
-                  } else if (holiday) {
-                    dayClasses += "bg-red-100 text-red-800 font-semibold ";
-                  } else if (isWeekOff) {
-                    dayClasses += "bg-gray-200 text-gray-600 ";
-                  } else {
-                    dayClasses += "text-gray-800 hover:bg-gray-50 ";
+                  for (let day = 1; day <= daysInMonth; day++) {
+                    const currentDate = new Date(currentYear, monthIndex, day);
+                    const holiday = getHolidayForDate(currentDate);
+                    const isWeekOffDay = isWeekOff(currentDate);
+                    const isToday = currentDate.toDateString() === new Date().toDateString();
+                    
+                    calendarDays.push({
+                      day,
+                      date: currentDate,
+                      holiday,
+                      isWeekOff: isWeekOffDay,
+                      isToday
+                    });
                   }
                   
                   return (
-                    <div
-                      key={index}
-                      className={dayClasses}
-                      title={holiday ? `${holiday.name}: ${holiday.description}` : isWeekOff ? 'Week Off' : ''}
-                    >
-                      <span>{day}</span>
-                      {holiday && (
-                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-                      )}
+                    <div key={monthIndex} className="bg-white rounded-lg border p-3">
+                      <div className="text-center mb-3">
+                        <h5 className="font-semibold text-gray-800 text-lg">{month}</h5>
+                      </div>
+                      
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {weekDaysShort.map(day => (
+                          <div key={day} className="text-center text-xs font-medium text-gray-600 py-1">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="grid grid-cols-7 gap-1">
+                        {calendarDays.map((dayData, index) => {
+                          if (!dayData) {
+                            return <div key={index} className="h-8"></div>;
+                          }
+                          
+                          const { day, holiday, isWeekOff, isToday } = dayData;
+                          
+                          let dayClasses = "h-8 flex items-center justify-center text-xs rounded relative ";
+                          
+                          if (isToday) {
+                            dayClasses += "bg-blue-600 text-white font-bold ";
+                          } else if (holiday) {
+                            dayClasses += "bg-red-100 text-red-800 font-semibold ";
+                          } else if (isWeekOff) {
+                            dayClasses += "bg-gray-200 text-gray-600 ";
+                          } else {
+                            dayClasses += "text-gray-800 hover:bg-gray-50 ";
+                          }
+                          
+                          return (
+                            <div
+                              key={index}
+                              className={dayClasses}
+                              title={holiday ? `${holiday.name}: ${holiday.description}` : isWeekOff ? 'Week Off' : ''}
+                            >
+                              <span>{day}</span>
+                              {holiday && (
+                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   );
-                })}
+                });
+              })()}
+            </div>
+            
+            <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-blue-600 rounded"></div>
+                <span>Today</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-100 border border-red-300 rounded relative">
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full"></div>
+                </div>
+                <span>Holidays ({leavePolicy?.holidays?.length || 0})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-200 rounded"></div>
+                <span>Week Off ({leavePolicy?.weekOff?.map(day => weekDays[day]).join(', ') || 'None'})</span>
               </div>
             </div>
-          );
-        });
-      })()}
-    </div>
-    
-    {/* Legend */}
-    <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 bg-blue-600 rounded"></div>
-        <span>Today</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 bg-red-100 border border-red-300 rounded relative">
-          <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full"></div>
+          </div>
         </div>
-        <span>Holidays ({leavePolicy?.holidays?.length || 0})</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 bg-gray-200 rounded"></div>
-        <span>Week Off ({leavePolicy?.weekOff?.map(day => weekDays[day]).join(', ') || 'None'})</span>
-      </div>
-    </div>
-    
-    {/* Holiday List - ALSO FIXED */}
-    {leavePolicy?.holidays && leavePolicy.holidays.length > 0 && (
-      <div className="mt-6">
-        <h5 className="font-semibold text-gray-800 mb-3">Holiday List {new Date().getFullYear()}</h5>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {leavePolicy.holidays
-            .sort((a, b) => {
-              const dateA = new Date(a.date);
-              const dateB = new Date(b.date);
-              // For recurring holidays, sort by month and day
-              if (a.recurring && b.recurring) {
-                if (dateA.getMonth() === dateB.getMonth()) {
-                  return dateA.getDate() - dateB.getDate();
-                }
-                return dateA.getMonth() - dateB.getMonth();
-              }
-              // For non-recurring, sort by actual date
-              return dateA - dateB;
-            })
-            .map((holiday, index) => {
-              const holidayDate = new Date(holiday.date);
-              let displayDate;
-              
-              if (holiday.recurring) {
-                // For recurring holidays, show with current year
-                displayDate = new Date(new Date().getFullYear(), holidayDate.getMonth(), holidayDate.getDate());
-              } else {
-                displayDate = holidayDate;
-              }
-              
-              const isPast = displayDate < new Date() && !isToday(displayDate);
-              
-              function isToday(date) {
-                const today = new Date();
-                return date.toDateString() === today.toDateString();
-              }
-              
-              return (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg border ${
-                    isPast ? 'bg-gray-50 text-gray-500' : 'bg-white'
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h6 className="font-medium text-sm">{holiday.name}</h6>
-                      <p className="text-xs text-gray-600 mt-1">{holiday.description}</p>
-                      <p className="text-xs mt-1 text-blue-600">
-                        {displayDate.toLocaleDateString('en-IN', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      {holiday.recurring && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          Yearly
-                        </span>
-                      )}
-                      {isToday(displayDate) && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                          Today
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-      </div>
-    )}
-  </div>
-</div>
 
         <h2 className="text-3xl mt-4 font-semibold mb-6 text-center">
           Leave Applications
@@ -1079,7 +1071,7 @@ const AddLeave = () => {
                 <thead className="bg-blue-900 text-white">
                   <tr>
                     <th className="w-12 px-4 py-3">Sr.</th>
-                    <th className="w-24 px-4 py-3">Type</th>
+                    <th className="w-32 px-4 py-3">Leave Types</th>
                     <th className="w-64 px-4 py-3">Reason</th>
                     <th className="w-20 px-4 py-3">Days</th>
                     <th className="w-36 px-4 py-3">Start Date</th>
@@ -1094,7 +1086,20 @@ const AddLeave = () => {
                       <td className="px-4 py-3">{index + 1}</td>
                       <td className="px-4 py-3">
                         <div>
-                          <div className="font-medium">{leave.leaveType}</div>
+                          {/* Display leave breakup */}
+                          {leave.leaveBreakup && leave.leaveBreakup.length > 0 ? (
+                            <div className="space-y-1">
+                              {leave.leaveBreakup.map((breakup, i) => (
+                                <div key={i} className="text-xs">
+                                  <span className="font-medium">{breakup.shortCode}:</span>
+                                  <span className="ml-1">{breakup.days} {breakup.days === 1 ? 'day' : 'days'}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            // Fallback for old structure
+                            <div className="font-medium">{leave.leaveType || 'N/A'}</div>
+                          )}
                           {leave.isHalfDay && (
                             <div className="text-xs text-blue-600">
                               {leave.halfDayType === "first-half"
@@ -1109,7 +1114,7 @@ const AddLeave = () => {
                           {leave.reason}
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-medium">{leave.days}</td>
+                      <td className="px-4 py-3 font-medium">{leave.totalDays || leave.days}</td>
                       <td className="px-4 py-3">
                         {formatDate(leave.startDate)}
                       </td>
@@ -1148,167 +1153,69 @@ const AddLeave = () => {
               </table>
             )}
 
-            {/* Add Leave Modal */}
+            {/* NEW Add Leave Modal with Combination Support */}
             {isAddModalOpen && (
               <div className="fixed inset-0 bg-opacity-50 backdrop-blur-2xl z-50 flex justify-center items-center p-4">
-                <div className="bg-white rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+                <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                   <div className="p-6">
                     <h2 className="text-xl font-semibold mb-4">
                       Apply for Leave
                     </h2>
 
-                    {/* Leave Type */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Leave Type <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={leaveForm.shortCode}
-                        onChange={(e) => {
-                          const selectedType = getAvailableLeaveTypes().find(
-                            type => type.shortCode === e.target.value
-                          );
-                          setLeaveForm((prev) => ({
-                            ...prev,
-                            leaveType: selectedType?.name || "",
-                            shortCode: e.target.value,
-                          }));
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="">Select Leave Type</option>
-                        {getAvailableLeaveTypes().map((type) => {
-                          const balance = getLeaveBalance(type.shortCode);
-                          return (
-                            <option key={type.shortCode} value={type.shortCode}>
-                              {type.name} ({type.shortCode})
-                              {type.maxPerRequest && ` - Max: ${type.maxPerRequest} days`}
-                              {balance && balance.total > 0 && ` - Balance: ${balance.remaining}`}
-                            </option>
-                          );
-                        })}
-                      </select>
-                      {getSelectedLeaveTypeDetails() && (
-                        <div className="mt-1 text-xs">
-                          {(() => {
-                            const balance = getLeaveBalance(leaveForm.shortCode);
-                            const selectedType = getSelectedLeaveTypeDetails();
-                            return (
-                              <div className="space-y-1">
-                                {balance && balance.total > 0 && (
-                                  <p className={`${balance.remaining > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    💰 Balance: {balance.remaining}/{balance.total} days
-                                  </p>
-                                )}
-                                {selectedType.requiresDocs && (
-                                  <p className="text-yellow-600">
-                                    📎 Documents required
-                                    {selectedType.docsRequiredAfterDays && 
-                                      ` (after ${selectedType.docsRequiredAfterDays} days)`}
-                                  </p>
-                                )}
-                                {selectedType.unpaid && (
-                                  <p className="text-red-600">
-                                    💰 This is unpaid leave
-                                  </p>
-                                )}
-                                {!selectedType.requiresApproval && (
-                                  <p className="text-green-600">✅ Auto-approved</p>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Half Day Option */}
-                    {/* <div className="mb-4">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={leaveForm.isHalfDay}
-                          onChange={(e) => setLeaveForm(prev => ({ 
-                            ...prev, 
-                            isHalfDay: e.target.checked,
-                            halfDayType: e.target.checked ? "first-half" : null,
-                            endDate: e.target.checked ? prev.startDate : prev.endDate
-                          }))}
-                          className="mr-2"
-                        />
-                        <span className="text-sm font-medium text-gray-700">Half Day Leave</span>
-                      </label>
-                    </div> */}
-
-                    {/* Half Day Type */}
-                    {/* {leaveForm.isHalfDay && (
-                      <div className="mb-4">
+                    {/* Date Selection First */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Half Day Type <span className="text-red-500">*</span>
+                          Start Date <span className="text-red-500">*</span>
                         </label>
-                        <select
-                          value={leaveForm.halfDayType || ""}
-                          onChange={(e) => setLeaveForm(prev => ({ ...prev, halfDayType: e.target.value }))}
+                        <input
+                          type="date"
+                          value={leaveForm.startDate}
+                          min={new Date().toISOString().split("T")[0]}
+                          onChange={(e) =>
+                            setLeaveForm((prev) => ({
+                              ...prev,
+                              startDate: e.target.value,
+                              endDate: prev.isHalfDay
+                                ? e.target.value
+                                : prev.endDate,
+                            }))
+                          }
                           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          <option value="">Select Half Day Type</option>
-                          <option value="first-half">First Half</option>
-                          <option value="second-half">Second Half</option>
-                        </select>
+                        />
                       </div>
-                    )} */}
 
-                    {/* Start Date */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Start Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={leaveForm.startDate}
-                        min={new Date().toISOString().split("T")[0]}
-                        onChange={(e) =>
-                          setLeaveForm((prev) => ({
-                            ...prev,
-                            startDate: e.target.value,
-                            endDate: prev.isHalfDay
-                              ? e.target.value
-                              : prev.endDate,
-                          }))
-                        }
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          End Date <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          value={leaveForm.endDate}
+                          min={
+                            leaveForm.startDate ||
+                            new Date().toISOString().split("T")[0]
+                          }
+                          disabled={leaveForm.isHalfDay}
+                          onChange={(e) =>
+                            setLeaveForm((prev) => ({
+                              ...prev,
+                              endDate: e.target.value,
+                            }))
+                          }
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        />
+                        {leaveForm.isHalfDay && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            End date is same as start date for half day leave
+                          </p>
+                        )}
+                      </div>
                     </div>
 
-                    {/* End Date */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        End Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        value={leaveForm.endDate}
-                        min={
-                          leaveForm.startDate ||
-                          new Date().toISOString().split("T")[0]
-                        }
-                        disabled={leaveForm.isHalfDay}
-                        onChange={(e) =>
-                          setLeaveForm((prev) => ({
-                            ...prev,
-                            endDate: e.target.value,
-                          }))
-                        }
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                      />
-                      {leaveForm.isHalfDay && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          End date is same as start date for half day leave
-                        </p>
-                      )}
-                    </div>
+                    
 
-                    {/* Days Calculation Display */}
+                    {/* Business Days Calculation Display */}
                     {leaveForm.startDate && leaveForm.endDate && (
                       <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                         <p className="text-sm font-medium text-blue-800">
@@ -1319,8 +1226,147 @@ const AddLeave = () => {
                                 leaveForm.endDate
                               )} days`}
                         </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Current Breakup Total: {getTotalBreakupDays()} days
+                        </p>
                       </div>
                     )}
+
+                    {/* Leave Breakup Section */}
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Leave Types Combination <span className="text-red-500">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={addLeaveBreakup}
+                          className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                        >
+                          + Add Leave Type
+                        </button>
+                      </div>
+
+                      {leaveForm.leaveBreakup.length === 0 ? (
+                        <div className="text-center py-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                          <p className="text-gray-500 text-sm">No leave types added yet</p>
+                          <button
+                            type="button"
+                            onClick={addLeaveBreakup}
+                            className="mt-2 text-blue-600 hover:text-blue-800 underline text-sm"
+                          >
+                            Add your first leave type
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {leaveForm.leaveBreakup.map((breakup, index) => (
+                            <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-medium text-gray-800">Leave Type {index + 1}</h4>
+                                {leaveForm.leaveBreakup.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeLeaveBreakup(index)}
+                                    className="text-red-500 hover:text-red-700 text-sm"
+                                  >
+                                    ✕ Remove
+                                  </button>
+                                )}
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {/* Leave Type Selection */}
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    Leave Type
+                                  </label>
+                                  <select
+                                    value={breakup.shortCode}
+                                    onChange={(e) => updateLeaveBreakup(index, 'shortCode', e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  >
+                                    <option value="">Select Leave Type</option>
+                                    {getAvailableLeaveTypes().map((type) => {
+                                      const balance = getLeaveBalance(type.shortCode);
+                                      return (
+                                        <option key={type.shortCode} value={type.shortCode}>
+                                          {type.name} ({type.shortCode})
+                                          {balance && balance.total > 0 && ` - Balance: ${balance.remaining}`}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
+                                </div>
+
+                                {/* Days Input */}
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    Days
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={breakup.days}
+                                    min={leaveForm.isHalfDay ? "0.5" : "1"}
+                                    max={leaveForm.isHalfDay ? "0.5" : "30"}
+                                    step={leaveForm.isHalfDay ? "0.5" : "1"}
+                                    onChange={(e) => updateLeaveBreakup(index, 'days', parseFloat(e.target.value) || 0)}
+                                    className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Leave Type Info */}
+                              {breakup.shortCode && (
+                                <div className="mt-2 text-xs">
+                                  {(() => {
+                                    const balance = getLeaveBalance(breakup.shortCode);
+                                    const selectedType = getAvailableLeaveTypes().find(
+                                      type => type.shortCode === breakup.shortCode
+                                    );
+                                    return (
+                                      <div className="space-y-1">
+                                        {balance && balance.total > 0 && (
+                                          <p className={`${balance.remaining >= breakup.days ? 'text-green-600' : 'text-red-600'}`}>
+                                            💰 Balance: {balance.remaining}/{balance.total} days
+                                            {balance.remaining < breakup.days && " (Insufficient!)"}
+                                          </p>
+                                        )}
+                                        {selectedType && (
+                                          <div className="flex flex-wrap gap-1">
+                                            <span className="bg-blue-100 text-blue-700 px-1 py-0.5 rounded text-xs">
+                                              Max: {selectedType.maxPerRequest} days
+                                            </span>
+                                            <span className="bg-blue-100 text-blue-700 px-1 py-0.5 rounded text-xs">
+                                              Min: {selectedType.minPerRequest} days
+                                            </span>
+                                            {selectedType.requiresDocs && (
+                                              <span className="bg-yellow-100 text-yellow-700 px-1 py-0.5 rounded text-xs">
+                                                Docs Required
+                                              </span>
+                                            )}
+                                            {selectedType.unpaid && (
+                                              <span className="bg-red-100 text-red-700 px-1 py-0.5 rounded text-xs">
+                                                Unpaid
+                                              </span>
+                                            )}
+                                            {!selectedType.requiresApproval && (
+                                              <span className="bg-green-100 text-green-700 px-1 py-0.5 rounded text-xs">
+                                                Auto-approve
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Reason */}
                     <div className="mb-4">
@@ -1346,23 +1392,10 @@ const AddLeave = () => {
                     </div>
 
                     {/* Document Upload (if required) */}
-                    {getSelectedLeaveTypeDetails()?.requiresDocs && (
+                    {areDocumentsRequired() && (
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Supporting Documents{" "}
-                          {(() => {
-                            const selectedType = getSelectedLeaveTypeDetails();
-                            const days = leaveForm.isHalfDay
-                              ? 0.5
-                              : calculateBusinessDays(leaveForm.startDate, leaveForm.endDate);
-                            
-                            if (selectedType.docsRequiredAfterDays !== null && 
-                                selectedType.docsRequiredAfterDays !== undefined && 
-                                days <= selectedType.docsRequiredAfterDays) {
-                              return "";
-                            }
-                            return <span className="text-red-500">*</span>;
-                          })()}
+                          Supporting Documents <span className="text-red-500">*</span>
                         </label>
                         <input
                           id="document-upload"
@@ -1374,14 +1407,7 @@ const AddLeave = () => {
                         />
                         <p className="text-xs text-gray-500 mt-1">
                           Supported formats: PDF, JPG, PNG, DOC, DOCX (Max 5MB per file, Max 5 files)
-                          {(() => {
-                            const selectedType = getSelectedLeaveTypeDetails();
-                            if (selectedType.docsRequiredAfterDays !== null && 
-                                selectedType.docsRequiredAfterDays !== undefined) {
-                              return ` - Required if leave exceeds ${selectedType.docsRequiredAfterDays} days`;
-                            }
-                            return "";
-                          })()}
+                          <br />Documents are required for one or more selected leave types
                         </p>
 
                         {/* Selected Files Display */}
@@ -1441,7 +1467,7 @@ const AddLeave = () => {
               </div>
             )}
 
-            {/* View Leave Details Modal */}
+            {/* View Leave Details Modal - Updated for combination leaves */}
             {isViewModalOpen && selectedLeave && (
               <div className="fixed inset-0 bg-opacity-50 backdrop-blur-2xl z-50 flex justify-center items-center p-4">
                 <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -1460,22 +1486,41 @@ const AddLeave = () => {
                     </div>
 
                     <div className="space-y-4">
+                      {/* Leave Types Breakdown */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">
+                          Leave Types
+                        </label>
+                        {selectedLeave.leaveBreakup && selectedLeave.leaveBreakup.length > 0 ? (
+                          <div className="mt-1 space-y-2">
+                            {selectedLeave.leaveBreakup.map((breakup, index) => (
+                              <div key={index} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                                <div>
+                                  <span className="font-medium text-gray-800">{breakup.leaveType}</span>
+                                  <span className="text-sm text-gray-600 ml-2">({breakup.shortCode})</span>
+                                </div>
+                                <span className="font-medium text-blue-600">
+                                  {breakup.days} {breakup.days === 1 ? 'day' : 'days'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          // Fallback for old structure
+                          <p className="text-gray-800 font-medium bg-gray-50 p-2 rounded">
+                            {selectedLeave.leaveType || 'N/A'}
+                          </p>
+                        )}
+                      </div>
+
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-500">
-                            Leave Type
+                            Total Duration
                           </label>
                           <p className="text-gray-800 font-medium">
-                            {selectedLeave.leaveType}
-                          </p>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-500">
-                            Duration
-                          </label>
-                          <p className="text-gray-800 font-medium">
-                            {selectedLeave.days}{" "}
-                            {selectedLeave.days === 1 ? "day" : "days"}
+                            {selectedLeave.totalDays || selectedLeave.days}{" "}
+                            {(selectedLeave.totalDays || selectedLeave.days) === 1 ? "day" : "days"}
                             {selectedLeave.isHalfDay && (
                               <span className="text-blue-600 text-sm ml-1">
                                 (
@@ -1485,6 +1530,14 @@ const AddLeave = () => {
                                 )
                               </span>
                             )}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">
+                            Application Date
+                          </label>
+                          <p className="text-gray-800 font-medium">
+                            {formatDate(selectedLeave.createdAt)}
                           </p>
                         </div>
                       </div>

@@ -42,6 +42,8 @@ import LeaveBalance from "./pages/LeaveBalance";
 import AdminLeaveBalance from "./pages/AdminLeaveBalance";
 import CompanyHolidays from "./pages/CompanyHolidays";
 import EmployeeMasterReport from "./pages/EmployeeMasterReport";
+import AddNewJoiners from "./pages/AddNewJoiners";
+import UploadDocuments from "./pages/UploadDocuments";
 
 function App() {
   const role = useSelector((state) => state.auth.role);
@@ -72,6 +74,8 @@ function App() {
           <Route path="/reimbursements" element={<Reimbursements/>}/>
           <Route path="/employeepolicy" element={<EmployeePolicy/>}/>
           <Route path="/leavebalance" element={<LeaveBalance/>}/>
+
+          <Route path="/uploaddocuments" element={<UploadDocuments/>}/>
 
 
           {role === "superadmin" && (
@@ -115,6 +119,7 @@ function App() {
           <Route path="/adminleavebalance" element={<PrivateRoute><AdminLeaveBalance/></PrivateRoute>}/>
           <Route path="/companyholidays" element={<PrivateRoute><CompanyHolidays/></PrivateRoute>}/>
           <Route path="/employeemasterreport" element={<PrivateRoute><EmployeeMasterReport/></PrivateRoute>}/>
+          <Route path="/newjoinersform" element={<PrivateRoute><AddNewJoiners/></PrivateRoute>}/>
             </>
           )}
 

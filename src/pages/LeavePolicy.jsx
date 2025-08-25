@@ -17,15 +17,19 @@ const LeavePolicy = () => {
     const [policyExists, setPolicyExists] = useState(false);
     const [policyId, setPolicyId] = useState(null);
     
-    // Basic Policy Data
+    // Basic Policy Data - Fixed to match schema
     const [policyData, setPolicyData] = useState({
         yearStartMonth: 1,
         weekOff: [0, 6],
+        includeWeekOff: false,
+        sandwichLeave: false,
+        holidays: []
     });
 
     // Leave Types Data
     const [leaveTypes, setLeaveTypes] = useState([]);
     
+    // Fixed initial state to match schema exactly
     const [currentLeaveType, setCurrentLeaveType] = useState({
         name: '',
         shortCode: '',
@@ -43,8 +47,8 @@ const LeavePolicy = () => {
         coolingPeriod: 0,
         carryForward: false,
         encashment: false,
-        lapse: false,
-        excludeHolidays: true
+        lapse: false
+        // Removed fields not in schema: excludeHolidays, sandwichLeave (these are policy-level, not leave-type-level)
     });
 
     const [editingIndex, setEditingIndex] = useState(-1);
@@ -98,7 +102,10 @@ const LeavePolicy = () => {
                 setPolicyId(policy._id);
                 setPolicyData({
                     yearStartMonth: policy.yearStartMonth || 1,
-                    weekOff: policy.weekOff || [0, 6]
+                    weekOff: policy.weekOff || [0, 6],
+                    includeWeekOff: policy.includeWeekOff || false,
+                    sandwichLeave: policy.sandwichLeave || false,
+                    holidays: policy.holidays || []
                 });
                 setLeaveTypes(policy.leaveTypes || []);
             } else {
@@ -112,7 +119,7 @@ const LeavePolicy = () => {
         }
     };
 
-    // Create Leave Policy
+    // Create Leave Policy - Fixed payload structure
     const handleCreatePolicy = async (e) => {
         e.preventDefault();
         try {
@@ -120,7 +127,7 @@ const LeavePolicy = () => {
             const response = await apiConnector('POST', createLeavePolicy, {
                 company: company._id,
                 ...policyData,
-                leaveTypes: []
+                leaveTypes: [] // Start with empty leave types
             });
             
             if (response.data.success) {
@@ -136,12 +143,14 @@ const LeavePolicy = () => {
         }
     };
 
-    // Update Leave Policy
+    // Update Leave Policy - Fixed to use correct endpoint structure
     const handleUpdatePolicy = async (e) => {
         e.preventDefault();
         try {
             dispatch(setLoading(true));
-            const response = await apiConnector('PUT', `${updateLeavePolicy}${policyId}`, policyData);
+            // Remove company from update data as it's not allowed to be updated
+            const { company: _, ...updateData } = policyData;
+            const response = await apiConnector('PUT', `${updateLeavePolicy}${policyId}`, updateData);
             
             if (response.data.success) {
                 toast.success('Leave policy updated successfully');
@@ -170,7 +179,7 @@ const LeavePolicy = () => {
         }));
     };
 
-    // Add or Update Leave Type
+    // Fixed Add or Update Leave Type
     const handleSaveLeaveType = async () => {
         if (!currentLeaveType.name || !currentLeaveType.shortCode) {
             toast.error('Please fill in name and short code');
@@ -195,7 +204,7 @@ const LeavePolicy = () => {
                     await fetchLeavePolicy(); // Refetch to get updated data
                 }
             } else {
-                // Add new leave type
+                // Add new leave type - Fixed endpoint URL
                 const response = await apiConnector('POST', `${addLeaveType}${policyId}/type`, currentLeaveType);
                 
                 if (response.data.success) {
@@ -214,7 +223,7 @@ const LeavePolicy = () => {
         }
     };
 
-    // Toggle Leave Type Status
+    // Fixed Toggle Leave Type Status
     const handleToggleLeaveTypeStatus = async (index) => {
         try {
             dispatch(setLoading(true));
@@ -251,8 +260,7 @@ const LeavePolicy = () => {
             coolingPeriod: 0,
             carryForward: false,
             encashment: false,
-            lapse: false,
-            excludeHolidays: true
+            lapse: false
         });
         setEditingIndex(-1);
     };
@@ -375,6 +383,38 @@ const LeavePolicy = () => {
                                                 </option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    {/* Include Week Off Toggle */}
+                                    <div className="mb-4">
+                                        <label className="flex items-center bg-gray-50 px-3 py-2 rounded-md">
+                                            <input
+                                                type="checkbox"
+                                                checked={policyData.includeWeekOff}
+                                                onChange={(e) => setPolicyData(prev => ({...prev, includeWeekOff: e.target.checked}))}
+                                                className="mr-2"
+                                            />
+                                            <span className="text-sm font-medium">Include Week Off Days in Leave Calculation</span>
+                                        </label>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            When enabled, weekends will be counted as leave days
+                                        </p>
+                                    </div>
+
+                                    {/* Sandwich Leave Toggle - Fixed to match schema */}
+                                    <div className="mb-4">
+                                        <label className="flex items-center bg-gray-50 px-3 py-2 rounded-md">
+                                            <input
+                                                type="checkbox"
+                                                checked={policyData.sandwichLeave}
+                                                onChange={(e) => setPolicyData(prev => ({...prev, sandwichLeave: e.target.checked}))}
+                                                className="mr-2"
+                                            />
+                                            <span className="text-sm font-medium">Enable Sandwich Leave</span>
+                                        </label>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            When enabled, holidays between leave days will be included in leave calculation
+                                        </p>
                                     </div>
 
                                     {/* Week Off Days */}
@@ -534,7 +574,7 @@ const LeavePolicy = () => {
                                                                     </div>
                                                                 </div>
 
-                                                                {/* Features */}
+                                                                {/* Features - Fixed to only show schema fields */}
                                                                 <div className="bg-white p-3 rounded border md:col-span-2 lg:col-span-3">
                                                                     <h5 className="font-medium text-gray-700 mb-2">Features</h5>
                                                                     <div className="flex flex-wrap gap-2">
@@ -544,8 +584,7 @@ const LeavePolicy = () => {
                                                                             { key: 'requiresDocs', label: 'Requires Documents', color: 'yellow' },
                                                                             { key: 'carryForward', label: 'Carry Forward', color: 'green' },
                                                                             { key: 'encashment', label: 'Encashment', color: 'purple' },
-                                                                            { key: 'lapse', label: 'Lapse', color: 'orange' },
-                                                                            { key: 'excludeHolidays', label: 'Exclude Holidays', color: 'indigo' }
+                                                                            { key: 'lapse', label: 'Lapse', color: 'orange' }
                                                                         ].map(feature => (
                                                                             leave[feature.key] && (
                                                                                 <span key={feature.key} className={`px-2 py-1 text-xs rounded bg-${feature.color}-100 text-${feature.color}-800`}>
@@ -553,7 +592,7 @@ const LeavePolicy = () => {
                                                                                 </span>
                                                                             )
                                                                         ))}
-                                                                        {![leave.unpaid, leave.requiresApproval, leave.requiresDocs, leave.carryForward, leave.encashment, leave.lapse, leave.excludeHolidays].some(Boolean) && (
+                                                                        {![leave.unpaid, leave.requiresApproval, leave.requiresDocs, leave.carryForward, leave.encashment, leave.lapse].some(Boolean) && (
                                                                             <span className="text-gray-500 text-sm">No special features enabled</span>
                                                                         )}
                                                                     </div>
@@ -584,17 +623,6 @@ const LeavePolicy = () => {
                                                         type="text"
                                                         value={currentLeaveType.name}
                                                         onChange={(e) => handleLeaveTypeChange('name', e.target.value)}
-                                                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                        placeholder="e.g., Casual Leave"
-                                                    />
-                                                </div>
-
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Short Code *</label>
-                                                    <input
-                                                        type="text"
-                                                        value={currentLeaveType.shortCode}
-                                                        onChange={(e) => handleLeaveTypeChange('shortCode', e.target.value.toUpperCase())}
                                                         className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                         placeholder="e.g., CL"
                                                         maxLength={5}
@@ -686,7 +714,7 @@ const LeavePolicy = () => {
                                         {/* Requirements Section */}
                                         <div className="mb-6">
                                             <h4 className="text-md font-medium text-gray-700 mb-3">Requirements & Settings</h4>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                                                 <label className="flex items-center bg-gray-50 p-3 rounded-md">
                                                     <input
                                                         type="checkbox"
@@ -745,16 +773,6 @@ const LeavePolicy = () => {
                                                         className="mr-2"
                                                     />
                                                     <span className="text-sm">Unpaid Leave</span>
-                                                </label>
-
-                                                <label className="flex items-center bg-gray-50 p-3 rounded-md">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={currentLeaveType.excludeHolidays}
-                                                        onChange={(e) => handleLeaveTypeChange('excludeHolidays', e.target.checked)}
-                                                        className="mr-2"
-                                                    />
-                                                    <span className="text-sm">Exclude Holidays</span>
                                                 </label>
 
                                                 <label className="flex items-center bg-gray-50 p-3 rounded-md">

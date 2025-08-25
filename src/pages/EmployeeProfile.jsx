@@ -130,9 +130,9 @@ const EmployeeProfile = () => {
   const fetchEmployeeDetails = async () => {
     try {
       dispatch(setLoading(true));
-      console.log('Fetching employee details for:', employee._id);
+      console.log('Fetching employee details for:', employee.employeeId);
       
-      const response = await apiConnector("GET", `${getEmployeeProfile}${employee._id}`, null, {
+      const response = await apiConnector("GET", `${getEmployeeProfile}${employee.employeeId}`, null, {
         Authorization: `Bearer ${token}`
       });
       

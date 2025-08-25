@@ -42,8 +42,13 @@ export const employeeEndpoints = {
   EDIT_EMPLOYEE : BASE_URL + "/api/employee/edit/",
   CSV_EMPLOYEE_ADD : BASE_URL + "/api/employee/bulk-create",
   getEmployeeProfile : BASE_URL + "/api/employee/getemployee/",
+  getEmployeeDocument : BASE_URL + "/api/employee/getEmployeeDocument/",
   updateEmployeeProfile : BASE_URL + "/api/employee/update/",
   monthWiseEmployees : BASE_URL + "/api/employee/monthWiseEmployees/",
+  getAllNewJoiners : BASE_URL + "/api/employee/getallnewjoiners/",
+  uploadDocument : BASE_URL + "/api/employee/uploadDocument/",
+  makeDocumentInvalid : BASE_URL + "/api/employee/makeDocumentInValid/",
+  makeDocumentValid : BASE_URL + "/api/employee/makeDocumentValid/",
 }
 
 //POLICIES ENDPOINTS
