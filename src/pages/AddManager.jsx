@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import { shiftEndpoints, companyEndpoints } from "../services/api";
 import { setReduxManagers } from "../slices/manager";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const { GET_ALL_SHIFTS } = shiftEndpoints;
 const { GET_ALL_MANAGER, ADD_HR, EDIT_HR } = companyEndpoints;
@@ -22,6 +24,9 @@ const AddManager = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedManager, setSelectedManager] = useState(null);
+
+    const role = useSelector( state => state.auth.role)
+    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
   const [managerForm, setManagerForm] = useState({
     email: "",
@@ -159,9 +164,20 @@ const AddManager = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-       <AdminHeader/>
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
         {loading ? (
           <div className="h-[92vh] flex justify-center items-center">

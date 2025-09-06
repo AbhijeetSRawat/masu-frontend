@@ -18,7 +18,8 @@ export const companyEndpoints = {
   ADD_HR : BASE_URL + "/api/company/addHR",
   GET_ALL_MANAGER : BASE_URL + "/api/company/getManager/",
   EDIT_HR : BASE_URL + "/api/company/editHR/",
-  GET_COMPANY_DETAILS : BASE_URL + "/api/company/getCompanyDetails/"
+  GET_COMPANY_DETAILS : BASE_URL + "/api/company/getCompanyDetails/",
+  DOWNLOAD_COMPANY_DETAILS : BASE_URL + "/api/company/"
 } 
 
 //SHIFT ENDPOINTS
@@ -76,7 +77,8 @@ export const leaveEndpoints = {
   getPendingLeavesForCompany : BASE_URL + "/api/leave/pendingleaves/",
   getCancelledLeavesForCompany : BASE_URL + "/api/leave/cancelledleaves/",
   getRejectedLeavesForCompany : BASE_URL + "/api/leave/rejectedleaves/",
-  getRestLeaveofEmployee : BASE_URL + "/api/leave/"
+  getRestLeaveofEmployee : BASE_URL + "/api/leave/",
+  bulkUpdate : BASE_URL + "/api/leave/bulkupdate"
 }
 
 //REIMBURSEMENTS ENDPOINTS
@@ -84,7 +86,8 @@ export const reimbursementsEndpoints ={
   CREATE_REIMBURSEMENT : BASE_URL + "/api/reimbursements/",
   GET_COMPANY_REIMBURSEMENTS : BASE_URL + "/api/reimbursements/company/",
   UPDATE_REIMBURSEMENTS_STATUS : BASE_URL + "/api/reimbursements/",
-  GET_EMPLOYEE_REIMBURSEMENTS : BASE_URL + "/api/reimbursements/employee/" 
+  GET_EMPLOYEE_REIMBURSEMENTS : BASE_URL + "/api/reimbursements/employee/",
+  BULK_UPDATE_REIMBURSEMENT_STATUS : BASE_URL + "/api/reimbursements/bulkupdate"
 }
 
 //REIMBURSEMENTS CATEGORY ENDPOINTS
@@ -112,4 +115,36 @@ export const leavepolicyendpoints = {
   removeLeaveType : BASE_URL + "/api/leave-policy/",
   getLeavePolicy : BASE_URL + "/api/leave-policy/company/",
   toggleLeaveTypeStatus : BASE_URL + "/api/leave-policy/"
+}
+
+//RESIGNATION ENDPOINTS
+
+export const resignationEndpoints ={
+  APPLY_FOR_RESIGNATION : BASE_URL + "/api/resignation/apply",
+  WITHDRAW_RESIGNATION : BASE_URL + "/api/resignation/withdraw/",
+  APPROVE_RESIGNATION : BASE_URL + "/api/resignation/approve",
+  GET_RESIGNATION : BASE_URL + "/api/resignation/",
+ GET_EMPLOYEE_RESIGNATION : BASE_URL + "/api/resignation/",
+ REJECT_RESIGNATION : BASE_URL + "/api/resignation/reject",
+ BULK_UPDATE : BASE_URL + "/api/resignation/bulkupdate"
+}
+
+//regularization endpoints
+
+export const regularizationEndpoints = {
+  getRegularizations : BASE_URL + "/api/regularization/",
+  getRegularization : BASE_URL + "/api/regularization/",
+  createRegularization : BASE_URL + "/api/regularization/",
+  updateRegularization : BASE_URL + "/api/regularization/",
+  deleteRegularization : BASE_URL + "/api/regularization/",
+  bulkUpdateRegularizations : BASE_URL + "/api/regularization/bulkupdate"
+} 
+
+//subadmin endpoints
+
+export const subadminEndpoints ={
+  createSubAdmin : BASE_URL + "/api/sub-admin/createsubadmin",
+  updatePermissions : BASE_URL + "/api/sub-admin/updatePermissions/",
+  updateDetails : BASE_URL + "/api/sub-admin/updateDetails/",
+  getSubAdmins : BASE_URL + "/api/sub-admin/getDetails/"
 }

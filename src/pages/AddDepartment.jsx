@@ -8,6 +8,8 @@ import { setReduxManagers } from "../slices/manager";
 import toast from "react-hot-toast";
 import { setReduxDepartments } from "../slices/departments";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const { GET_ALL_MANAGER } = companyEndpoints;
 const { ADD_DEPARTMENT, UPDATE_DEPARTMENT, GET_ALL_DEPARTMENTS } =
@@ -18,6 +20,9 @@ const AddDepartment = () => {
 
   const company = useSelector((state) => state.permissions.company);
   const loading = useSelector((state) => state.permissions.loading);
+
+    const role = useSelector( state => state.auth.role)
+    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
   const reduxManagers = useSelector((state) => state.managers.reduxManagers);
 
@@ -128,9 +133,20 @@ const AddDepartment = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
-      <div className="w-[100vw] lg:w-[80vw] lg:ml-[20vw]">
-       <AdminHeader/>
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
+      <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
 
         {loading ? (

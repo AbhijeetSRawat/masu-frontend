@@ -65,7 +65,10 @@ const EmployeePanel = () => {
     },
     "Attendance": {
       icon: <SlCalender />,
-      items: [{ name: "Daily Attendance Records", link: "/attendence" }],
+      items: [
+        { name: "Daily Attendance Records", link: "/attendence" },
+        { name: "Attendence Regularization", link: "/attendenceregularization" }
+      ],
     },
     "Leave Management": {
       icon: <FaRegCalendarXmark />,

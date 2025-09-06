@@ -12,12 +12,12 @@ import { setReduxManagers } from "../slices/manager";
 import { setReduxDepartments } from "../slices/departments";
 import toast from "react-hot-toast";
 
-const AdminSidebar = () => {
+const SubAdminSidebar = () => {
   const [show, setShow] = useState(false);
   const [expanded, setExpanded] = useState({});
 
   const permissions = useSelector(
-    (state) => state.permissions.permissions || []
+    (state) => state.permissions.subAdminPermissions || []
   );
 
   const navigate = useNavigate();
@@ -139,8 +139,8 @@ const AdminSidebar = () => {
   };
 
   const logoutHandler = () => {
+    dispatch(setSubAdminPermissions(null));
     dispatch(setPermissions(null));
-     dispatch(setSubAdminPermissions(null));
     dispatch(setAllCompany(null));
     dispatch(setCompany(null));
     dispatch(setReduxShifts(null));
@@ -252,8 +252,8 @@ const AdminSidebar = () => {
         </div>
 
         {/* Admin Header */}
-        <div onClick={()=>navigate('/adminpanel')} className="w-[90%] cursor-pointer h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">
-          <MdOutlineAdminPanelSettings /> Admin
+        <div onClick={()=>navigate('/subadminpanel')} className="w-[90%] cursor-pointer h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">
+          <MdOutlineAdminPanelSettings /> Sub-Admin
         </div>
 
         {/* Navigation Menu */}
@@ -284,4 +284,4 @@ const AdminSidebar = () => {
   );
 };
 
-export default AdminSidebar;
+export default SubAdminSidebar;

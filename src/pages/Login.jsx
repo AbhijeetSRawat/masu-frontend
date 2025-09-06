@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import logo from "../assets/images/WhatsApp Image 2025-06-30 at 16.52.32_498f8c48.jpg";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { setCompany, setPermissions } from "../slices/companyPermission";
+import { setCompany, setPermissions, setSubAdminPermissions } from "../slices/companyPermission";
 import { setReduxShifts } from "../slices/shiftSlice";
 import { setReduxManagers } from "../slices/manager";
 import { setReduxDepartments } from "../slices/departments";
@@ -49,7 +49,7 @@ const Login = () => {
         dispatch(setReduxShifts(null));
         dispatch(setReduxManagers(null));
         dispatch(setReduxDepartments(null));
-        navigate("/adminpanel");
+    
       } else {
         console.warn("No company data received");
       }
@@ -114,6 +114,10 @@ const Login = () => {
       } else if (response.data.data.user.role === "admin") {
         getCompanyDetails(response.data.data.user.companyId);
         navigate("/adminpanel");
+      } else if (response.data.data.user.role === "subadmin") {
+        dispatch(setSubAdminPermissions(response.data.data.user.permissions))
+        getCompanyDetails(response.data.data.user.companyId._id);
+        navigate("/subadminpanel");
       } else {
         dispatch(setReduxEmployee(response.data.data.user));
         console.log(response)

@@ -18,6 +18,8 @@ import { setReduxDepartments } from "../slices/departments";
 import { setReduxEmployee, setReduxEmployees } from "../slices/employee";
 import { useNavigate } from "react-router-dom";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 const { GET_ALL_SHIFTS } = shiftEndpoints;
 const { GET_ALL_MANAGER } = companyEndpoints;
 const { GET_ALL_DEPARTMENTS } = departmentEndpoints;
@@ -35,6 +37,9 @@ const EmployeeMasterInformation = () => {
   const token = useSelector((state) => state.auth.token);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+    const role = useSelector( state => state.auth.role)
+    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
   const loading = useSelector((state) => state.permissions.loading);
   let number = 1;
@@ -278,9 +283,20 @@ const EmployeeMasterInformation = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-       <AdminHeader/>
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
         {loading ? (
           <div className="flex w-[full] h-[92vh] justify-center items-center">

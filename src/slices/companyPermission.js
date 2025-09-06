@@ -5,6 +5,7 @@ const initialState = {
   loading: false,
   company: localStorage.getItem('company')? JSON.parse(localStorage.getItem('company')):  null,
   permissions:localStorage.getItem('permissions')? JSON.parse(localStorage.getItem('permissions')):  [],
+  subAdminPermissions : localStorage.getItem('subAdminPermissions')?  JSON.parse(localStorage.getItem('subAdminPermissions')):  [],
 };
 
 const permissionsSlice = createSlice({
@@ -25,9 +26,14 @@ const permissionsSlice = createSlice({
       localStorage.setItem("permissions",JSON.stringify(state.permissions));
       console.log("All permissions :", state.permissions)
     },
+    setSubAdminPermissions(state, value) {
+      state.subAdminPermissions = value.payload;
+      localStorage.setItem("SubAdminPermissions",JSON.stringify(state.subAdminPermissions));
+      console.log("All sub-admin permissions :", state.subAdminPermissions)
+    },
   },
 });
 
-export const { setLoading, setPermissions, setCompany } = permissionsSlice.actions;
+export const { setLoading, setPermissions,setSubAdminPermissions, setCompany } = permissionsSlice.actions;
 
 export default permissionsSlice.reducer;

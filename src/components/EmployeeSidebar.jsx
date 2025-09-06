@@ -10,7 +10,7 @@ import {
 } from "react-icons/md";
 import { IoManOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-import { setPermissions } from "../slices/companyPermission";
+import { setPermissions, setSubAdminPermissions } from "../slices/companyPermission";
 import { setAllCompany } from "../slices/allCompanySlice";
 import { setCompany, setReduxShifts } from "../slices/shiftSlice";
 import { setReduxManagers } from "../slices/manager";
@@ -45,6 +45,7 @@ const EmployeeSidebar = () => {
     ],
     Attendence: [
       { name: "Daily Attendence Records", link: "/dailyattendencerecords" },
+      { name: "Attendence Regularization", link: "/attendenceregularization" }
     ],
     "Leave Management": [
       { name: "Apply for Leave", link: "/addleave" },
@@ -56,7 +57,7 @@ const EmployeeSidebar = () => {
       
       {
         name: "Resignation Submission & Notice Period",
-        link: "/resignationsubmission",
+        link: "/onboardingandexit",
       },
     ],
     "Upload Documents" : [
@@ -74,6 +75,7 @@ const EmployeeSidebar = () => {
 
   const logoutHandler = () => {
     dispatch(setPermissions(null));
+     dispatch(setSubAdminPermissions(null));
     dispatch(setAllCompany(null));
     dispatch(setCompany(null));
     dispatch(setReduxShifts(null));

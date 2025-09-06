@@ -6,6 +6,8 @@ import { apiConnector } from "../services/apiConnector";
 import { policiesEndpoints } from "../services/api";
 import toast from "react-hot-toast";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const { ADD_POLICY, GET_POLICIES, UPDATE_POLICY, DELETE_POLICY } = policiesEndpoints;
 
@@ -13,6 +15,9 @@ const Policies = () => {
   const company = useSelector((state) => state.permissions.company);
   const loading = useSelector((state) => state.permissions.loading);
   const dispatch = useDispatch();
+
+    const role = useSelector( state => state.auth.role)
+    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
   const [policies, setPolicies] = useState([]);
   const [selectedPolicy, setSelectedPolicy] = useState(null);
@@ -154,9 +159,20 @@ const Policies = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <AdminHeader />
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader/> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
         {loading ? (
           <div className="h-[92vh] flex justify-center items-center">

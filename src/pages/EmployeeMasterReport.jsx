@@ -5,6 +5,8 @@ import AdminSidebar from "../components/AdminSidebar";
 import { employeeEndpoints } from "../services/api";
 import * as XLSX from 'xlsx';
 import { apiConnector } from "../services/apiConnector";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const { monthWiseEmployees } = employeeEndpoints;
 
@@ -12,6 +14,9 @@ const EmployeeMasterReport = () => {
   const loading = useSelector(state => state.permissions.loading);
  const token = useSelector(state => state.auth.token)
   const company = useSelector((state) => state.permissions.company); 
+
+    const role = useSelector( state => state.auth.role)
+    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
   
   const [formData, setFormData] = useState({
     month: new Date().getMonth() + 1, // Current month
@@ -197,9 +202,20 @@ const EmployeeMasterReport = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <AdminHeader />
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
         {loading ? (
           <div className="flex w-[full] h-[92vh] justify-center items-center">
             <div className="spinner"></div>

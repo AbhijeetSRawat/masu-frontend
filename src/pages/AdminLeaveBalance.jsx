@@ -8,6 +8,8 @@ import { employeeEndpoints, leaveEndpoints, leavepolicyendpoints } from "../serv
 import { setReduxEmployees } from "../slices/employee";
 import AdminSidebar from "../components/AdminSidebar";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const { GET_ALL_EMPLOYEE_BY_COMPANY_ID } = employeeEndpoints;
 const { getRestLeaveofEmployee } = leaveEndpoints;
@@ -18,6 +20,9 @@ const AdminLeaveBalance = () => {
   const employees = useSelector((state) => state.employees.reduxEmployees);
   const loading = useSelector((state) => state.permissions.loading);
   const dispatch = useDispatch();
+
+    const role = useSelector( state => state.auth.role)
+    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -114,9 +119,20 @@ const AdminLeaveBalance = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+    {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <AdminHeader />
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
         <div className="p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Employee Leave Balance</h2>
 

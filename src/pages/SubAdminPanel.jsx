@@ -1,16 +1,27 @@
-import React, { useState, useEffect } from "react";
-import AdminSidebar from "../components/AdminSidebar";
+import React, { useState, useMemo } from "react"; // Remove useEffect, add useMemo
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { MdKeyboardArrowDown, MdKeyboardArrowRight } from "react-icons/md";
-import AdminHeader from "../components/AdminHeader";
 
-const AdminPanel = () => {
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
+
+const SubAdminPanel = () => {
   const permissions = useSelector(
-    (state) => state.permissions.permissions || []
+    (state) => state.permissions.subAdminPermissions || []
   );
   const company = useSelector((state) => state.permissions.company);
-  const [revisedPermissions, setRevisedPermissions] = useState([]);
+  
+  // ✅ FIX: Replace useEffect + setState with useMemo
+  const revisedPermissions = useMemo(() => {
+    const cloned = [...permissions];
+    if (permissions.includes("Reimbursement Report")) {
+      return [...cloned, "Reimbursement Category"];
+    } else {
+      return cloned;
+    }
+  }, [permissions]);
+
   const [expandedCards, setExpandedCards] = useState({});
   const [expandedSubSections, setExpandedSubSections] = useState({});
   const navigate = useNavigate();
@@ -96,6 +107,8 @@ const AdminPanel = () => {
     ],
   };
 
+  // ❌ REMOVE: This useEffect is causing the infinite loop
+  /*
   useEffect(() => {
     const cloned = [...permissions];
     if (permissions.includes("Reimbursement Report")) {
@@ -104,6 +117,7 @@ const AdminPanel = () => {
       setRevisedPermissions([...cloned]);
     }
   }, [permissions]);
+  */
 
   const getAllItemsFromSection = (sectionData) => {
     if (Array.isArray(sectionData)) return sectionData;
@@ -253,10 +267,10 @@ const AdminPanel = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+      <SubAdminSidebar />
       <div className="w-[100vw] lg:w-[79vw] lg:ml-[20vw]">
         {/* Header */}
-        <AdminHeader/>
+        <SubAdminHeader/>
 
         {/* Content Grid */}
         <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -332,4 +346,4 @@ const AdminPanel = () => {
   );
 };
 
-export default AdminPanel;
+export default SubAdminPanel;

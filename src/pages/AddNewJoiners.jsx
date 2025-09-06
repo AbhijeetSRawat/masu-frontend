@@ -10,6 +10,8 @@ import {
 } from "../services/api";
 import { setReduxDepartments } from "../slices/departments";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const { GET_ALL_DEPARTMENTS } = departmentEndpoints;
 const {
@@ -24,6 +26,9 @@ const AddNewJoiners = () => {
   const company = useSelector((state) => state.permissions.company);
   const token = useSelector((state) => state.auth.token);
   const dispatch = useDispatch();
+
+  const role = useSelector( state => state.auth.role)
+  const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
   const loading = useSelector((state) => state.permissions.loading);
   const departmentData = useSelector((state) => state.departments.reduxDepartments);
@@ -685,9 +690,20 @@ const AddNewJoiners = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <AdminHeader/>
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
         {loading ? (
           <div className="flex w-full h-[92vh] justify-center items-center">

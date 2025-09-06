@@ -6,6 +6,8 @@ import { apiConnector } from '../services/apiConnector';
 import { leavepolicyendpoints } from '../services/api';
 import toast from 'react-hot-toast';
 import AdminHeader from '../components/AdminHeader';
+import SubAdminSidebar from '../components/SubAdminSidebar';
+import SubAdminHeader from '../components/SubAdminHeader';
 
 const {createLeavePolicy, updateLeavePolicy, addLeaveType, updateLeaveType, toggleLeaveTypeStatus, getLeavePolicy} = leavepolicyendpoints;
 
@@ -13,6 +15,9 @@ const CompanyHolidays = () => {
     const dispatch = useDispatch();
     const company = useSelector((state) => state.permissions.company);
     const loading = useSelector((state) => state.permissions.loading);
+
+      const role = useSelector( state => state.auth.role)
+      const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
     const [policyExists, setPolicyExists] = useState(false);
     const [policyId, setPolicyId] = useState(null);
@@ -225,9 +230,20 @@ const CompanyHolidays = () => {
 
     return (
         <div className="flex">
-            <AdminSidebar />
-            <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-                <AdminHeader/>
+            {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
+      <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
                 <div className='w-full px-6 py-4'>
                     <div className='w-full flex justify-center mt-4 mb-6 text-3xl font-semibold'>

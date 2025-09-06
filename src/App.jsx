@@ -44,6 +44,12 @@ import CompanyHolidays from "./pages/CompanyHolidays";
 import EmployeeMasterReport from "./pages/EmployeeMasterReport";
 import AddNewJoiners from "./pages/AddNewJoiners";
 import UploadDocuments from "./pages/UploadDocuments";
+import EmployeeResignation from "./pages/EmployeeResignation";
+import ResignationApproval from "./pages/ResignationApproval";
+import EmployeeRegularisation from "./pages/EmployeeRegularisation";
+import RegularizationApproval from "./pages/RegularizationApproval";
+import AddSubAdmin from "./pages/AddSubAdmin";
+import SubAdminPanel from "./pages/SubAdminPanel";
 
 function App() {
   const role = useSelector((state) => state.auth.role);
@@ -52,31 +58,35 @@ function App() {
     <>
       <div className="lg:overflow-x-hidden">
         <Routes>
-          <Route path="/" element={<Home/>}/>
-    
+          <Route path="/" element={<Home />} />
+
           <Route path="/login" element={<Login />} />
-          <Route path="/demo" element={<Demo/>}/>
-          <Route path="/contactus" element={<Contactus/>}/>
-          <Route path="/forgetpassword" element={<ForgetPassword/>}/>
-          <Route path="/reset-password/:tokenId" element={<ResetPassword/>}/>
-          <Route path="whyus" element={<WhyUs/>}/>
-          <Route path="/forsmallbusiness" element={<ForSmallBusiness/>}/>
-          <Route path="/forenterprises" element={<ForEnterprises/>}/>
-          <Route path="/forhrteams" element={<ForHRTeams/>}/>
-          <Route path="/payrollprocessing" element={<PayrollProcessing/>}/>
-          <Route path="/taxcompliance" element={<TaxCompliance/>}/>
+          <Route path="/demo" element={<Demo />} />
+          <Route path="/contactus" element={<Contactus />} />
+          <Route path="/forgetpassword" element={<ForgetPassword />} />
+          <Route path="/reset-password/:tokenId" element={<ResetPassword />} />
+          <Route path="whyus" element={<WhyUs />} />
+          <Route path="/forsmallbusiness" element={<ForSmallBusiness />} />
+          <Route path="/forenterprises" element={<ForEnterprises />} />
+          <Route path="/forhrteams" element={<ForHRTeams />} />
+          <Route path="/payrollprocessing" element={<PayrollProcessing />} />
+          <Route path="/taxcompliance" element={<TaxCompliance />} />
 
           {/* for this a protected route is to be designed */}
-          <Route path="/changepassword" element={<ChangePassword/>}/>
-          <Route path="/employeepanel" element={<EmployeePanel/>}/>
-          <Route path="/employeeprofile" element={<EmployeeProfile/>}/>
-          <Route path="/addleave" element={<AddLeave />}/>
-          <Route path="/reimbursements" element={<Reimbursements/>}/>
-          <Route path="/employeepolicy" element={<EmployeePolicy/>}/>
-          <Route path="/leavebalance" element={<LeaveBalance/>}/>
+          <Route path="/changepassword" element={<ChangePassword />} />
+          <Route path="/employeepanel" element={<EmployeePanel />} />
+          <Route path="/employeeprofile" element={<EmployeeProfile />} />
+          <Route path="/addleave" element={<AddLeave />} />
+          <Route path="/reimbursements" element={<Reimbursements />} />
+          <Route path="/employeepolicy" element={<EmployeePolicy />} />
+          <Route path="/leavebalance" element={<LeaveBalance />} />
+          <Route path="/onboardingandexit" element={<EmployeeResignation />} />
+          <Route
+            path="/attendenceregularization"
+            element={<EmployeeRegularisation />}
+          />
 
-          <Route path="/uploaddocuments" element={<UploadDocuments/>}/>
-
+          <Route path="/uploaddocuments" element={<UploadDocuments />} />
 
           {role === "superadmin" && (
             <>
@@ -89,6 +99,16 @@ function App() {
                   </PrivateRoute>
                 }
               />
+               <Route
+                path="/registercompany"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <RegisterCompany />{" "}
+                  </PrivateRoute>
+                }
+              />
+
               <Route
                 path="/companylist"
                 element={
@@ -103,30 +123,188 @@ function App() {
 
           {["superadmin", "admin"].includes(role) && (
             <>
-              <Route path="/registercompany" element={ <PrivateRoute> <RegisterCompany /> </PrivateRoute> } />
-            <Route path="/leaveapproval" element={ <PrivateRoute> <LeaveApproval /> </PrivateRoute>  }/>
-          <Route path="/adminpanel" element={ <PrivateRoute> <AdminPanel /> </PrivateRoute> } />
-          <Route path="/shiftmanagement" element={ <PrivateRoute> <ShiftManagement /> </PrivateRoute> } />
-          <Route path="/addmanager" element={ <PrivateRoute> <AddManager /> </PrivateRoute> } />
-          <Route path="/adddepartment" element={ <PrivateRoute> <AddDepartment /> </PrivateRoute> } />
-          <Route path="/addemployee" element={<PrivateRoute> <AddEmployee/> </PrivateRoute>}/>
-          <Route path="/policies" element = {<PrivateRoute> <Policies/> </PrivateRoute>}/>
-          <Route path="/reimbursementreport" element={<PrivateRoute> <ReimbursementReport/> </PrivateRoute>}/>
-          <Route path="/reimbursementcategory" element={<PrivateRoute> <ReimbursementCategory/> </PrivateRoute>}/>
-          <Route path="/customizetablesequence" element={<PrivateRoute><CustomizeTableSequence/></PrivateRoute>}/>
-          <Route path="/addleavepolicy" element={<PrivateRoute><LeavePolicy/></PrivateRoute>}/>
-          <Route path="/employeemasterinformation" element={<PrivateRoute><EmployeeMasterInformation/></PrivateRoute>}/>
-          <Route path="/adminleavebalance" element={<PrivateRoute><AdminLeaveBalance/></PrivateRoute>}/>
-          <Route path="/companyholidays" element={<PrivateRoute><CompanyHolidays/></PrivateRoute>}/>
-          <Route path="/employeemasterreport" element={<PrivateRoute><EmployeeMasterReport/></PrivateRoute>}/>
-          <Route path="/newjoinersform" element={<PrivateRoute><AddNewJoiners/></PrivateRoute>}/>
+             
+              <Route
+                path="/adminpanel"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <AdminPanel />{" "}
+                  </PrivateRoute>
+                }
+              />
+            </>
+          )}
+          
+
+          {["superadmin", "admin", "subadmin"].includes(role) && (
+            <>
+              <Route
+                path="/subadminpanel"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <SubAdminPanel />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/shiftmanagement"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <ShiftManagement />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/addmanager"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <AddManager />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/adddepartment"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <AddDepartment />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/addemployee"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <AddEmployee />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/policies"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <Policies />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/reimbursementreport"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <ReimbursementReport />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/reimbursementcategory"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <ReimbursementCategory />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/customizetablesequence"
+                element={
+                  <PrivateRoute>
+                    <CustomizeTableSequence />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/addleavepolicy"
+                element={
+                  <PrivateRoute>
+                    <LeavePolicy />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/employeemasterinformation"
+                element={
+                  <PrivateRoute>
+                    <EmployeeMasterInformation />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/adminleavebalance"
+                element={
+                  <PrivateRoute>
+                    <AdminLeaveBalance />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/companyholidays"
+                element={
+                  <PrivateRoute>
+                    <CompanyHolidays />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/employeemasterreport"
+                element={
+                  <PrivateRoute>
+                    <EmployeeMasterReport />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/newjoinersform"
+                element={
+                  <PrivateRoute>
+                    <AddNewJoiners />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/resignationapproval"
+                element={
+                  <PrivateRoute>
+                    <ResignationApproval />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/leaveapproval"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <LeaveApproval />{" "}
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/attendenceapproval"
+                element={
+                  <PrivateRoute>
+                    <RegularizationApproval />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/addsubadmin"
+                element={
+                  <PrivateRoute>
+                    <AddSubAdmin />
+                  </PrivateRoute>
+                }
+              />
             </>
           )}
 
-          
           <Route path="*" element={<>{role}</>} />
         </Routes>
-        
       </div>
     </>
   );

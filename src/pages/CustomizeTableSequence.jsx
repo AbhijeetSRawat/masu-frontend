@@ -6,6 +6,8 @@ import { tablecustomisationEndpoints } from "../services/api";
 import { apiConnector } from "../services/apiConnector";
 import toast from "react-hot-toast";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const {
   CREATE_TABLE_CUSTOMIZATION,
@@ -20,6 +22,10 @@ const CustomizeTableSequence = () => {
   const [tableStructures, setTableStructures] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const role = useSelector( state => state.auth.role)
+  const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
+
   const [newStructure, setNewStructure] = useState({
     name: "",
     columnNames: [""],
@@ -72,9 +78,20 @@ const CustomizeTableSequence = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <AdminHeader/>
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
 
         {loading ? (

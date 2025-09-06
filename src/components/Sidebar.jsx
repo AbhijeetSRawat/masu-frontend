@@ -13,7 +13,7 @@ import { FiShield } from 'react-icons/fi';
 import { TbLogs, TbReportAnalytics } from 'react-icons/tb';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import logo from '../assets/images/WhatsApp Image 2025-06-30 at 16.52.32_498f8c48.jpg';
-import { setPermissions } from '../slices/companyPermission';
+import { setPermissions, setSubAdminPermissions } from '../slices/companyPermission';
 import { setCompany, setReduxShifts } from '../slices/shiftSlice';
 import { setReduxManagers } from '../slices/manager';
 import { setReduxDepartments } from '../slices/departments';
@@ -27,6 +27,7 @@ const Sidebar = () => {
 
   const logoutHandler = () => {
     dispatch(setPermissions(null));
+     dispatch(setSubAdminPermissions(null));
     dispatch(setAllCompany(null));
     dispatch(setCompany(null));
     dispatch(setReduxShifts(null));

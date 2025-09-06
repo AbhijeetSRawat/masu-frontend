@@ -7,6 +7,8 @@ import { apiConnector } from "../services/apiConnector";
 import { useNavigate } from "react-router-dom";
 import { leaveEndpoints } from "../services/api";
 import AdminHeader from "../components/AdminHeader";
+import SubAdminSidebar from "../components/SubAdminSidebar";
+import SubAdminHeader from "../components/SubAdminHeader";
 
 const { 
   getCompanyLeaves,
@@ -15,7 +17,8 @@ const {
   getCancelledLeavesForCompany,
   getRejectedLeavesForCompany,
   approveLeave,
-  rejectLeave
+  rejectLeave,
+  bulkUpdate
 } = leaveEndpoints;
 
 const LeaveApproval = () => {
@@ -24,9 +27,21 @@ const LeaveApproval = () => {
   const [leaves, setLeaves] = useState([]);
   const [selectedLeave, setSelectedLeave] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [rejectionReasonInput, setRejectionReasonInput] = useState("");
   const [showRejectionInput, setShowRejectionInput] = useState(false);
   const [statusFilter, setStatusFilter] = useState("pending");
+
+    const role = useSelector( state => state.auth.role)
+    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
+  
+  // Bulk selection states
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [bulkAction, setBulkAction] = useState(""); // 'approve' or 'reject'
+  const [bulkReason, setBulkReason] = useState("");
+  const [bulkComment, setBulkComment] = useState("");
+
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
@@ -77,12 +92,101 @@ const LeaveApproval = () => {
           total: result.data.total,
           limit: pagination.limit
         });
+        
+        // Reset bulk selection when fetching new data
+        setSelectedIds([]);
+        setSelectAll(false);
+        
         toast.success(`${status.charAt(0).toUpperCase() + status.slice(1)} leaves fetched successfully!`);
       }
     } catch (error) {
       console.error(error);
       toast.error("Unable to fetch leaves!");
       setLeaves([]);
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
+  // Bulk selection handlers
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedIds([]);
+      setSelectAll(false);
+    } else {
+      const currentPageIds = leaves.map(leave => leave._id);
+      setSelectedIds(currentPageIds);
+      setSelectAll(true);
+    }
+  };
+
+  const toggleSelectOne = (id) => {
+    setSelectedIds(prev => {
+      const newSelection = prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id];
+      
+      // Update selectAll state
+      setSelectAll(newSelection.length === leaves.length);
+      return newSelection;
+    });
+  };
+
+  // Bulk action handlers
+  const openBulkModal = (action) => {
+    if (selectedIds.length === 0) {
+      toast.error("Please select at least one leave");
+      return;
+    }
+    setBulkAction(action);
+    setBulkReason("");
+    setBulkComment("");
+    setIsBulkModalOpen(true);
+  };
+
+  const handleBulkAction = async () => {
+    if (selectedIds.length === 0) {
+      toast.error("Please select at least one leave");
+      return;
+    }
+
+    if (bulkAction === 'reject' && !bulkReason.trim()) {
+      toast.error("Rejection reason is required");
+      return;
+    }
+
+    try {
+      dispatch(setLoading(true));
+      
+      const payload = {
+        ids: selectedIds,
+        action: bulkAction,
+        ...(bulkAction === 'approve' ? {
+          comment: bulkComment
+        } : {
+          reason: bulkReason
+        })
+      };
+
+      const result = await apiConnector(
+        "PATCH",
+        bulkUpdate,
+        payload,
+        {
+          Authorization: `Bearer ${token}`
+        }
+      );
+
+      if (result.data.success) {
+        toast.success(`${selectedIds.length} leaves ${bulkAction}d successfully!`);
+        setSelectedIds([]);
+        setSelectAll(false);
+        setIsBulkModalOpen(false);
+        fetchLeaves(statusFilter, pagination.page);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || `Failed to ${bulkAction} leaves`);
     } finally {
       dispatch(setLoading(false));
     }
@@ -157,6 +261,8 @@ const LeaveApproval = () => {
   const handleStatusFilterChange = (status) => {
     setStatusFilter(status);
     setPagination(prev => ({ ...prev, page: 1 }));
+    setSelectedIds([]);
+    setSelectAll(false);
   };
 
   const handlePageChange = (newPage) => {
@@ -210,9 +316,20 @@ const LeaveApproval = () => {
 
   return (
     <div className="flex">
-      <AdminSidebar />
+     {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
+      }
+
+      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
-        <AdminHeader />
+        {
+        (role === 'superadmin')
+          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+      }
+
 
         {loading ? (
           <div className="flex w-[full] h-[92vh] justify-center items-center">
@@ -238,11 +355,57 @@ const LeaveApproval = () => {
                 ))}
               </div>
 
+              {/* Bulk Actions Bar */}
+              {selectedIds.length > 0 && (
+                <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className="text-blue-800 font-medium">
+                      {selectedIds.length} leave{selectedIds.length > 1 ? 's' : ''} selected
+                    </span>
+                  </div>
+                  <div className="flex gap-3">
+                    {statusFilter === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => openBulkModal('approve')}
+                          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+                        >
+                          Bulk Approve
+                        </button>
+                        <button
+                          onClick={() => openBulkModal('reject')}
+                          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                        >
+                          Bulk Reject
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => {
+                        setSelectedIds([]);
+                        setSelectAll(false);
+                      }}
+                      className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Table */}
               <div className="overflow-x-auto">
                 <table className="min-w-full table-fixed border text-sm text-left">
                   <thead className="bg-blue-900 text-white">
                     <tr>
+                      <th className="w-12 px-4 py-2">
+                        <input
+                          type="checkbox"
+                          checked={selectAll}
+                          onChange={toggleSelectAll}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </th>
                       <th className="w-12 px-4 py-2">Sr.</th>
                       <th className="w-32 px-4 py-2">Employee</th>
                       <th className="w-32 px-4 py-2">Leave Types</th>
@@ -257,13 +420,21 @@ const LeaveApproval = () => {
                   <tbody>
                     {leaves.length === 0 ? (
                       <tr>
-                        <td colSpan="9" className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan="10" className="px-4 py-8 text-center text-gray-500">
                           No {statusFilter} leaves found
                         </td>
                       </tr>
                     ) : (
                       leaves.map((leave, index) => (
                         <tr key={leave._id} className="border-t hover:bg-gray-50">
+                          <td className="px-4 py-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(leave._id)}
+                              onChange={() => toggleSelectOne(leave._id)}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </td>
                           <td className="px-4 py-2">
                             {(pagination.page - 1) * pagination.limit + index + 1}
                           </td>
@@ -332,6 +503,67 @@ const LeaveApproval = () => {
                 </div>
               )}
             </div>
+
+            {/* Bulk Action Modal */}
+            {isBulkModalOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex justify-center items-center">
+                <div className="bg-white p-6 rounded-lg w-[90vw] max-w-2xl">
+                  <h2 className="text-2xl font-bold mb-6 text-gray-800">
+                    Bulk {bulkAction === 'approve' ? 'Approve' : 'Reject'} Leaves
+                  </h2>
+
+                  <div className="mb-4 p-4 bg-gray-50 rounded">
+                    <p className="font-semibold text-gray-800">
+                      You are about to {bulkAction} {selectedIds.length} leave{selectedIds.length > 1 ? 's' : ''}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      This action cannot be undone. Please confirm your decision.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {bulkAction === 'approve' ? 'Bulk Approval Comments (Optional)' : 'Bulk Rejection Reason'} 
+                        {bulkAction === 'reject' && <span className="text-red-500"> *</span>}
+                      </label>
+                      <textarea
+                        value={bulkAction === 'approve' ? bulkComment : bulkReason}
+                        onChange={(e) => bulkAction === 'approve' ? setBulkComment(e.target.value) : setBulkReason(e.target.value)}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder={`Enter ${bulkAction === 'approve' ? 'approval comments' : 'rejection reason'} for all selected leaves...`}
+                        required={bulkAction === 'reject'}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-6">
+                    <button
+                      onClick={() => {
+                        setIsBulkModalOpen(false);
+                        setBulkReason("");
+                        setBulkComment("");
+                      }}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleBulkAction}
+                      disabled={loading || (bulkAction === 'reject' && !bulkReason.trim())}
+                      className={`px-6 py-2 rounded transition-colors disabled:opacity-50 ${
+                        bulkAction === 'approve'
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-red-600 hover:bg-red-700 text-white'
+                      }`}
+                    >
+                      {loading ? "Processing..." : `Bulk ${bulkAction === 'approve' ? 'Approve' : 'Reject'}`}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* View/Action Modal */}
             {isViewModalOpen && selectedLeave && (

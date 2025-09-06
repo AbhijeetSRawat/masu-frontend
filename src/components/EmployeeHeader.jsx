@@ -32,12 +32,12 @@ const EmployeeHeader = () => {
                   {/* Right side - Employee Info */}
                   <div className="flex items-center ml-4">
                     <div className="text-right mr-3 hidden sm:block">
-                      <p className="text-sm lg:text-base font-medium">{employee.user.profile.firstName} {employee.user.profile.lastName}</p>
+                      <p className="text-sm lg:text-base font-medium">{employee.user?.profile.firstName} {employee.user?.profile.lastName}</p>
                       <p className="text-xs text-gray-300">Employee</p>
                     </div>
                     <div className="relative">
                       <img 
-                        src={employee.user.profile.avatar || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} 
+                        src={employee.user?.profile.avatar || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} 
                         alt="employee avatar" 
                         className="h-8 w-8 lg:h-10 lg:w-10 rounded-full border-2 border-white/30 object-cover"
                         onError={(e) => {
@@ -48,7 +48,7 @@ const EmployeeHeader = () => {
                     </div>
                     {/* Show name on mobile below avatar */}
                     <div className="ml-2 sm:hidden">
-                      <p className="text-sm font-medium">{employee.user.profile.firstName}</p>
+                      <p className="text-sm font-medium">{employee.user?.profile.firstName}</p>
                     </div>
                   </div>
                 </div>
