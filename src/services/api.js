@@ -22,6 +22,7 @@ export const companyEndpoints = {
   DOWNLOAD_COMPANY_DETAILS : BASE_URL + "/api/company/"
 } 
 
+
 //SHIFT ENDPOINTS
 export const shiftEndpoints = {
   ADD_SHIFT: BASE_URL + "/api/shift/add",
@@ -34,6 +35,11 @@ export const departmentEndpoints = {
   ADD_DEPARTMENT: BASE_URL + "/api/department/create",
   UPDATE_DEPARTMENT : BASE_URL + "/api/department/edit/",
   GET_ALL_DEPARTMENTS : BASE_URL + "/api/department/getAll/",
+  ASSIGN_HR_MANAGER : BASE_URL + "/api/department/assignHrManager",
+  UPDATE_HR_MANAGER : BASE_URL + "/api/department/updateHrManager",
+  UPDATE_HR_MANAGER_DETAILS : BASE_URL + "/api/department/updateHRManagerDetails",
+  GET_ALL : BASE_URL + "/api/department/getAll/",
+  GET_HR_AND_MANAGER : BASE_URL + "/api/department/getHRandManager/",
 }
 
 //EMPLOYEE ENDPOINTS

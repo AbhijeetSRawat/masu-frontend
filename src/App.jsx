@@ -50,6 +50,8 @@ import EmployeeRegularisation from "./pages/EmployeeRegularisation";
 import RegularizationApproval from "./pages/RegularizationApproval";
 import AddSubAdmin from "./pages/AddSubAdmin";
 import SubAdminPanel from "./pages/SubAdminPanel";
+import ManagerPanel from "./pages/ManagerPanel";
+import HRPanel from "./pages/HRPanel";
 
 function App() {
   const role = useSelector((state) => state.auth.role);
@@ -130,6 +132,37 @@ function App() {
                   <PrivateRoute>
                     {" "}
                     <AdminPanel />{" "}
+                  </PrivateRoute>
+                }
+              />
+            </>
+          )}
+
+
+          {["superadmin", "admin",'subadmmin','manager'].includes(role) && (
+            <>
+             
+              <Route
+                path="/managerpanel"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <ManagerPanel />{" "}
+                  </PrivateRoute>
+                }
+              />
+            </>
+          )}
+
+           {["superadmin", "admin",'subadmmin','hr'].includes(role) && (
+            <>
+             
+              <Route
+                path="/hrpanel"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <HRPanel/>{" "}
                   </PrivateRoute>
                 }
               />

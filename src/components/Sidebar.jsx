@@ -43,9 +43,9 @@ const Sidebar = () => {
     { icon: <FaBuildingCircleCheck />, label: 'Register Company', link: '/registercompany' },
     { icon: <MdOutlinePeopleAlt />, label: 'Company List', link: '/companylist' },
     { icon: <FiShield />, label: 'Admin Management', link: '/adminmanagement' },
-    { icon: <MdOutlinePeopleAlt />, label: 'Employee Management', link: '/employeemanagement' },
+    // { icon: <MdOutlinePeopleAlt />, label: 'Employee Management', link: '/employeemanagement' },
     { icon: <IoNotifications />, label: 'Notifications', link: '/notifications' },
-    { icon: <TbLogs />, label: 'Audit Logs', link: '/auditlogs' },
+    // { icon: <TbLogs />, label: 'Audit Logs', link: '/auditlogs' },
     { icon: <TbReportAnalytics />, label: 'Reports', link: '/reports' },
   ];
 

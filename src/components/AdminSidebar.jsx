@@ -31,7 +31,7 @@ const AdminSidebar = () => {
       { name: "Add Employee", link: "/addemployee" },
       { name: "Edit Employee", link: "/editemployee" },
     ],
-    "Add Manager": [
+    "Add Managers and HR": [
       { name: "Add Manager", link: "/addmanager" },
     ],
     "Payroll Manage": [

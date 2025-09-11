@@ -5,7 +5,7 @@ const initialState = {
   loading: false,
   company: localStorage.getItem('company')? JSON.parse(localStorage.getItem('company')):  null,
   permissions:localStorage.getItem('permissions')? JSON.parse(localStorage.getItem('permissions')):  [],
-  subAdminPermissions : localStorage.getItem('subAdminPermissions')?  JSON.parse(localStorage.getItem('subAdminPermissions')):  [],
+  subAdminPermissions : localStorage.getItem('subAdminPermissions')?  JSON.parse(localStorage.getItem('subAdminPermissions')):  null,
 };
 
 const permissionsSlice = createSlice({

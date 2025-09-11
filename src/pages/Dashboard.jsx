@@ -28,12 +28,11 @@ const Dashboard = () => {
     { icon: <FaBuildingCircleCheck size={24} />, label: 'Register Company', path: '/registercompany' },
     { icon: <MdOutlinePeopleAlt size={24} />, label: 'Company List', path: '/companylist' },
     { icon: <FiShield size={24} />, label: 'Admin Management', path: '/admin-management' },
-    { icon: <MdOutlinePeopleAlt size={24} />, label: 'Employee Management', path: '/employee-management' },
+    // { icon: <MdOutlinePeopleAlt size={24} />, label: 'Employee Management', path: '/employee-management' },
     { icon: <IoNotifications size={24} />, label: 'Notifications', path: '/notifications' },
-    { icon: <TbLogs size={24} />, label: 'Audit Logs', path: '/logs' },
+    // { icon: <TbLogs size={24} />, label: 'Audit Logs', path: '/logs' },
     { icon: <TbReportAnalytics size={24} />, label: 'Reports', path: '/reports' },
-    { icon: <MdLockReset size={24} />, label: 'Reset Password', path: '/changepassword' },
-    { icon: <IoIosLogOut size={24} />, label: 'Log Out', path: '/logout', action: 'logout' },
+
 
   ];
 

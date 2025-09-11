@@ -186,13 +186,8 @@ const AddManager = () => {
         ) : (
           <>
             {/* Add Button */}
-            <div className="flex justify-end px-6 mt-4">
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800"
-              >
-                + Add Manager
-              </button>
+            <div className=" ml-[31vw] text-3xl font-semibold  px-6 my-4">
+                Managers
             </div>
 
             {/* Manager Table */}
