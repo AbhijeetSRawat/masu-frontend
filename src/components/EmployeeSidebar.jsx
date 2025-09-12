@@ -15,6 +15,7 @@ import { setAllCompany } from "../slices/allCompanySlice";
 import { setCompany, setReduxShifts } from "../slices/shiftSlice";
 import { setReduxManagers } from "../slices/manager";
 import { setReduxDepartments } from "../slices/departments";
+import userlogo from '../assets/images/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg'
 import toast from "react-hot-toast";
 
 const EmployeeSidebar = () => {
@@ -23,6 +24,8 @@ const EmployeeSidebar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const role = useSelector((state) => state.auth.role);
+
+  const company = useSelector(state => state.permissions.company)
 
   const tabs = {
     Dashboard: [{ name: "Employee Dashboard", link: "/employeepanel" }],
@@ -155,9 +158,10 @@ const EmployeeSidebar = () => {
         </div>
 
         {/* Logo */}
-        <div className="w-full px-4">
-          <img src={logo} alt="MASU Consultancy" className="w-full h-auto" />
-        </div>
+          {/* Logo */}
+                <div className="w-full flex justify-center px-4">
+                  <img src={ company.thumbnail || userlogo } alt="MASU Consultancy" className=" h-[25vh] rounded-4xl" />
+                </div>
 
         {/* Employee Header */}
         <div className="w-[90%] h-[8vh] bg-blue-800 flex gap-3 p-5 items-center text-white text-2xl font-semibold rounded-xl">

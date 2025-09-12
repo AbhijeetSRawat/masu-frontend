@@ -11,7 +11,7 @@ import SubAdminSidebar from "../components/SubAdminSidebar";
 import SubAdminHeader from "../components/SubAdminHeader";
 
 const { GET_ALL_SHIFTS } = shiftEndpoints;
-const { GET_ALL_MANAGER, ADD_HR, EDIT_HR } = companyEndpoints;
+const { GET_ALL_MANAGER, EDIT_HR } = companyEndpoints;
 
 const AddManager = () => {
   const dispatch = useDispatch();
@@ -21,12 +21,11 @@ const AddManager = () => {
 
   const [shifts, setShifts] = useState([]);
   const [managers, setManagers] = useState([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedManager, setSelectedManager] = useState(null);
 
-    const role = useSelector( state => state.auth.role)
-    const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
+  const role = useSelector(state => state.auth.role);
+  const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions);
 
   const [managerForm, setManagerForm] = useState({
     email: "",
@@ -54,7 +53,7 @@ const AddManager = () => {
       firstName: "",
       lastName: "",
       phone: "",
-      employeeId : "",
+      employeeId: "",
       designation: "",
       joiningDate: "",
       employmentType: "full-time",
@@ -62,6 +61,7 @@ const AddManager = () => {
       skills: [""],
       documents: [],
       shiftId: "",
+      customFields: [],
     });
   };
 
@@ -103,7 +103,7 @@ const AddManager = () => {
       firstName: manager.user.profile.firstName,
       lastName: manager.user.profile.lastName,
       phone: manager.user.profile.phone,
-      employeeId:manager.employmentDetails.employeeId,
+      employeeId: manager.employmentDetails.employeeId,
       designation: manager.employmentDetails.designation,
       joiningDate: manager.employmentDetails.joiningDate.slice(0, 10),
       employmentType: manager.employmentDetails.employmentType,
@@ -115,40 +115,42 @@ const AddManager = () => {
       skills: manager.employmentDetails?.skills,
       documents: manager.documents || [],
       shiftId: manager.employmentDetails?.shift?._id,
-       customFields: manager.user.customFields || []
+      customFields: manager.user.customFields || []
     });
     setIsEditModalOpen(true);
   };
 
-  const handleSubmit = async (type) => {
+  const handleSubmit = async () => {
     try {
       dispatch(setLoading(true));
       const payload = { ...managerForm, companyId: company._id };
-      console.log("payload of add manager is " ,payload)
-      if (type === "add") {
-        const addData = await apiConnector("POST", ADD_HR, payload);
-        console.log(addData);
-        toast.success("Manager added successfully");
-      } else {
-        const editData = await apiConnector(
-          "PUT",
-          `${EDIT_HR}${selectedManager._id}`,
-          payload
-        );
-        console.log(editData);
-        toast.success("Manager updated successfully");
-      }
+      console.log("payload of edit manager is ", payload);
+      
+      const editData = await apiConnector(
+        "PUT",
+        `${EDIT_HR}${selectedManager._id}`,
+        payload
+      );
+      console.log(editData);
+      toast.success("Manager updated successfully");
 
       resetManagerForm();
-      setIsAddModalOpen(false);
       setIsEditModalOpen(false);
       getAllManagers();
     } catch (err) {
-      toast.error("Submission failed");
+      toast.error("Update failed");
       console.log(err);
     } finally {
       dispatch(setLoading(false));
     }
+  };
+
+  const removeCustomField = (index) => {
+    const newFields = managerForm.customFields.filter((_, i) => i !== index);
+    setManagerForm((prev) => ({
+      ...prev,
+      customFields: newFields,
+    }));
   };
 
   useEffect(() => {
@@ -164,20 +166,18 @@ const AddManager = () => {
 
   return (
     <div className="flex">
-     {
+      {
         (role === 'superadmin')
           ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
           : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
       }
 
-      
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
         {
-        (role === 'superadmin')
-          ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
-          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
-      }
-
+          (role === 'superadmin')
+            ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
+            : (role === 'admin' ? <AdminHeader /> : <SubAdminHeader />)
+        }
 
         {loading ? (
           <div className="h-[92vh] flex justify-center items-center">
@@ -185,9 +185,9 @@ const AddManager = () => {
           </div>
         ) : (
           <>
-            {/* Add Button */}
-            <div className=" ml-[31vw] text-3xl font-semibold  px-6 my-4">
-                Managers
+            {/* Page Title */}
+            <div className="ml-[31vw] text-3xl font-semibold px-6 my-4">
+              Managers
             </div>
 
             {/* Manager Table */}
@@ -244,201 +244,388 @@ const AddManager = () => {
         )}
       </div>
 
-      {/* Modal */}
-      {(isAddModalOpen || isEditModalOpen) && (
-        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-[90vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">
-              {isAddModalOpen ? "Add Manager" : "Edit Manager"}
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0  bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-6">
+              Edit Manager
             </h3>
-            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              {["employeeId","email", "firstName", "lastName", "phone", "designation"].map(
-                (key) => (
+            
+            <form className="space-y-6">
+              {/* Personal Information Section */}
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
+                  Personal Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Employee ID <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter Employee ID"
+                      value={managerForm.employeeId}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          employeeId: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter First Name"
+                      value={managerForm.firstName}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          firstName: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter Last Name"
+                      value={managerForm.lastName}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          lastName: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Enter Email Address"
+                      value={managerForm.email}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="Enter Phone Number"
+                      value={managerForm.phone}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Designation <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter Designation"
+                      value={managerForm.designation}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          designation: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Employment Details Section */}
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
+                  Employment Details
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Joining Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={managerForm.joiningDate}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          joiningDate: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Employment Type <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={managerForm.employmentType}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          employmentType: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="full-time">Full-Time</option>
+                      <option value="part-time">Part-Time</option>
+                      <option value="contract">Contract</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Assigned Shift
+                    </label>
+                    <select
+                      value={managerForm.shiftId}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          shiftId: e.target.value,
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Shift</option>
+                      {shifts.map((shift) => (
+                        <option key={shift._id} value={shift._id}>
+                          {shift.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Salary Information Section */}
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
+                  Salary Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Base Salary
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Enter Base Salary"
+                      value={managerForm.salary.base}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          salary: { ...prev.salary, base: +e.target.value },
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bonus
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Enter Bonus Amount"
+                      value={managerForm.salary.bonus}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          salary: { ...prev.salary, bonus: +e.target.value },
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tax Deductions
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Enter Tax Deductions"
+                      value={managerForm.salary.taxDeductions}
+                      onChange={(e) =>
+                        setManagerForm((prev) => ({
+                          ...prev,
+                          salary: { ...prev.salary, taxDeductions: +e.target.value },
+                        }))
+                      }
+                      className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Skills Section */}
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
+                  Skills & Expertise
+                </h4>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Skills (comma separated)
+                  </label>
                   <input
-                    key={key}
-                    placeholder={key[0].toUpperCase() + key.slice(1)}
-                    value={managerForm[key]}
+                    type="text"
+                    placeholder="e.g., Project Management, Leadership, Excel"
+                    value={
+                      Array.isArray(managerForm.skills)
+                        ? managerForm.skills.join(", ")
+                        : ""
+                    }
                     onChange={(e) =>
                       setManagerForm((prev) => ({
                         ...prev,
-                        [key]: e.target.value,
+                        skills: e.target.value.split(",").map((s) => s.trim()),
                       }))
                     }
-                    className="input-field"
+                    className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                )
-              )}
-              <input
-                type="date"
-                value={managerForm.joiningDate}
-                onChange={(e) =>
-                  setManagerForm((prev) => ({
-                    ...prev,
-                    joiningDate: e.target.value,
-                  }))
-                }
-                className="input-field"
-              />
+                </div>
+              </div>
 
-              <select
-                value={managerForm.employmentType}
-                onChange={(e) =>
-                  setManagerForm((prev) => ({
-                    ...prev,
-                    employmentType: e.target.value,
-                  }))
-                }
-                className="input-field"
-              >
-                <option value="full-time">Full-Time</option>
-                <option value="part-time">Part-Time</option>
-                <option value="contract">Contract</option>
-              </select>
-
-              {/* Salary */}
-              <input
-                type="number"
-                placeholder="Base Salary"
-                value={managerForm.salary.base}
-                onChange={(e) =>
-                  setManagerForm((prev) => ({
-                    ...prev,
-                    salary: { ...prev.salary, base: +e.target.value },
-                  }))
-                }
-                className="input-field"
-              />
-              <input
-                type="number"
-                placeholder="Bonus"
-                value={managerForm.salary.bonus}
-                onChange={(e) =>
-                  setManagerForm((prev) => ({
-                    ...prev,
-                    salary: { ...prev.salary, bonus: +e.target.value },
-                  }))
-                }
-                className="input-field"
-              />
-              <input
-                type="number"
-                placeholder="Tax Deductions"
-                value={managerForm.salary.taxDeductions}
-                onChange={(e) =>
-                  setManagerForm((prev) => ({
-                    ...prev,
-                    salary: { ...prev.salary, taxDeductions: +e.target.value },
-                  }))
-                }
-                className="input-field"
-              />
-
-              {/* Skills & Shift */}
-              <input
-                placeholder="Skills (comma separated)"
-                value={
-                  Array.isArray(managerForm.skills)
-                    ? managerForm.skills.join(", ")
-                    : ""
-                }
-                onChange={(e) =>
-                  setManagerForm((prev) => ({
-                    ...prev,
-                    skills: e.target.value.split(",").map((s) => s.trim()),
-                  }))
-                }
-                className="input-field col-span-2"
-              />
-              <select
-                value={managerForm.shiftId}
-                onChange={(e) =>
-                  setManagerForm((prev) => ({
-                    ...prev,
-                    shiftId: e.target.value,
-                  }))
-                }
-                className="input-field col-span-2"
-              >
-                <option value="">Select Shift</option>
-                {shifts.map((shift) => (
-                  <option key={shift._id} value={shift._id}>
-                    {shift.name}
-                  </option>
-                ))}
-              </select>
-
-              <div className="col-span-2 mt-4">
-                <label className="font-semibold mr-3 text-gray-700">
+              {/* Custom Fields Section */}
+              <div>
+                <h4 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
                   Custom Fields
-                </label>
-
-                {managerForm?.customFields?.map((field, index) => (
-                  <div key={index} className="grid grid-cols-2 gap-2 mt-2">
-                    <input
-                      placeholder="Label"
-                      value={field.label}
-                      onChange={(e) => {
-                        const newFields = [...managerForm.customFields];
-                        newFields[index].label = e.target.value;
-                        setManagerForm((prev) => ({
-                          ...prev,
-                          customFields: newFields,
-                        }));
-                      }}
-                      className="input-field"
-                    />
-                    <input
-                      placeholder="Name"
-                      value={field.name}
-                      onChange={(e) => {
-                        const newFields = [...managerForm.customFields];
-                        newFields[index].name = e.target.value;
-                        setManagerForm((prev) => ({
-                          ...prev,
-                          customFields: newFields,
-                        }));
-                      }}
-                      className="input-field"
-                    />
-                  </div>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setManagerForm((prev) => ({
-                      ...prev,
-                      customFields: [
-                        ...prev?.customFields,
-                        { label: "", name: "" },
-                      ],
-                    }))
-                  }
-                  className="mt-3 px-3  py-1 bg-blue-700 text-white rounded hover:bg-blue-800"
-                >
-                  + Add Custom Field
-                </button>
+                </h4>
+                <div className="space-y-3">
+                  {managerForm?.customFields?.map((field, index) => (
+                    <div key={index} className="grid grid-cols-2 gap-2 items-end">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Field Label
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Enter field label"
+                          value={field.label}
+                          onChange={(e) => {
+                            const newFields = [...managerForm.customFields];
+                            newFields[index].label = e.target.value;
+                            setManagerForm((prev) => ({
+                              ...prev,
+                              customFields: newFields,
+                            }));
+                          }}
+                          className="input-field w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Field Value
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Enter field value"
+                            value={field.name}
+                            onChange={(e) => {
+                              const newFields = [...managerForm.customFields];
+                              newFields[index].name = e.target.value;
+                              setManagerForm((prev) => ({
+                                ...prev,
+                                customFields: newFields,
+                              }));
+                            }}
+                            className="input-field flex-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeCustomField(index)}
+                            className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setManagerForm((prev) => ({
+                        ...prev,
+                        customFields: [
+                          ...(prev?.customFields || []),
+                          { label: "", name: "" },
+                        ],
+                      }))
+                    }
+                    className="mt-3 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                  >
+                    + Add Custom Field
+                  </button>
+                </div>
               </div>
             </form>
 
             {/* Modal Actions */}
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-8 flex justify-end gap-3 pt-4 border-t">
               <button
                 onClick={() => {
-                  setIsAddModalOpen(false);
                   setIsEditModalOpen(false);
                   setSelectedManager(null);
                   resetManagerForm();
                 }}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                className="px-6 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleSubmit(isAddModalOpen ? "add" : "edit")}
-                className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
+                onClick={handleSubmit}
+                className="px-6 py-2 bg-blue-900 text-white rounded hover:bg-blue-800 flex items-center"
+                disabled={loading}
               >
-                {loading ? (<div className="loader1"></div>) : ( <>  {isAddModalOpen ? "Add Manager" : "Save Changes"} </>) }
+                {loading ? (
+                  <div className="loader1"></div>
+                ) : (
+                  <>Save Changes</>
+                )}
               </button>
             </div>
           </div>

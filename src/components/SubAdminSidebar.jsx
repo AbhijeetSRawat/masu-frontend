@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { setPermissions, setSubAdminPermissions } from "../slices/companyPermission";
 import { setAllCompany } from "../slices/allCompanySlice";
 import { setCompany, setReduxShifts } from "../slices/shiftSlice";
+import userlogo from '../assets/images/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg'
 import { setReduxManagers } from "../slices/manager";
 import { setReduxDepartments } from "../slices/departments";
 import toast from "react-hot-toast";
@@ -19,6 +20,8 @@ const SubAdminSidebar = () => {
   const permissions = useSelector(
     (state) => state.permissions.subAdminPermissions || []
   );
+
+  const company = useSelector(state => state.permissions.company)
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -247,9 +250,9 @@ const SubAdminSidebar = () => {
         </div>
 
         {/* Logo */}
-        <div className="w-full px-4">
-          <img src={logo} alt="MASU Consultancy" className="w-full h-auto" />
-        </div>
+        <div className="w-full flex justify-center px-4">
+                          <img src={ company.thumbnail || userlogo } alt="MASU Consultancy" className=" h-[25vh] rounded-4xl" />
+                        </div>
 
         {/* Admin Header */}
         <div onClick={()=>navigate('/subadminpanel')} className="w-[90%] cursor-pointer h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">

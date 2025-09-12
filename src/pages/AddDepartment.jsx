@@ -305,22 +305,7 @@ const AddDepartment = () => {
       <div>
         <h4 className="font-semibold text-gray-700 mb-3 border-b pb-2">Basic Information</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              placeholder="Enter email address"
-              value={hrManagerForm.email}
-              onChange={(e) => setHrManagerForm(prev => ({
-                ...prev,
-                email: e.target.value
-              }))}
-              className="input-field w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+          
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -384,6 +369,23 @@ const AddDepartment = () => {
             />
           </div>
         </div>
+
+        <div>
+            <label className="block text-sm font-medium text-gray-700 m-1">
+              Email Address <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              placeholder="Enter email address"
+              value={hrManagerForm.email}
+              onChange={(e) => setHrManagerForm(prev => ({
+                ...prev,
+                email: e.target.value
+              }))}
+              className="input-field w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <div>

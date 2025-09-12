@@ -1,6 +1,6 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
-import userlogo from '../assets/images/360_F_229758328_7x8jwCwjtBMmC6rgFzLFhZoEpLobB6L8.jpg'
+
 
 const AdminHeader = () => {
 
@@ -65,7 +65,7 @@ const AdminHeader = () => {
             </div>
           </div>
 
-          {/* Center - Company Logo and Name */}
+          {/* Center - Company Logo and Name
           <div className="flex items-center justify-center flex-1 lg:flex-none lg:absolute lg:left-8/14 lg:transform lg:-translate-x-1/2">
             <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
               <img
@@ -82,7 +82,7 @@ const AdminHeader = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Right side - Admin Actions */}
           <div className="flex items-center space-x-3">

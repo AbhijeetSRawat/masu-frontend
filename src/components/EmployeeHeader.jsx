@@ -17,7 +17,7 @@ const EmployeeHeader = () => {
                   </div>
         
                   {/* Center - Company Logo and Name */}
-                  <div className="flex items-center justify-center flex-1 lg:flex-none">
+                  {/* <div className="flex items-center justify-center flex-1 lg:flex-none">
                     <img 
                       src={company.thumbnail} 
                       alt="company logo" 
@@ -27,7 +27,7 @@ const EmployeeHeader = () => {
                       <h1 className="text-xl lg:text-2xl font-bold">{company?.name}</h1>
                       <p className="text-xs lg:text-sm text-gray-200 lg:hidden">Employee Portal</p>
                     </div>
-                  </div>
+                  </div> */}
         
                   {/* Right side - Employee Info */}
                   <div className="flex items-center ml-4">

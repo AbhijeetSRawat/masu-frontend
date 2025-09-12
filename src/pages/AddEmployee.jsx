@@ -935,23 +935,7 @@ const AddEmployee = () => {
                       />
                     </div>
 
-                    <div className="flex flex-col">
-                      <label className="text-sm font-medium text-gray-700 mb-1">
-                        Official Email
-                      </label>
-                      <input
-                        placeholder="Enter email address"
-                        type="email"
-                        value={employeeForm.email}
-                        onChange={(e) =>
-                          setEmployeeForm((prev) => ({
-                            ...prev,
-                            email: e.target.value,
-                          }))
-                        }
-                        className="input-field px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
+                   
 
                     <div className="flex flex-col">
                       <label className="text-sm font-medium text-gray-700 mb-1">
@@ -987,6 +971,24 @@ const AddEmployee = () => {
                               ...prev.profile,
                               lastName: e.target.value,
                             },
+                          }))
+                        }
+                        className="input-field px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+
+                     <div className="flex flex-col">
+                      <label className="text-sm font-medium text-gray-700 mb-1">
+                        Official Email
+                      </label>
+                      <input
+                        placeholder="Enter email address"
+                        type="email"
+                        value={employeeForm.email}
+                        onChange={(e) =>
+                          setEmployeeForm((prev) => ({
+                            ...prev,
+                            email: e.target.value,
                           }))
                         }
                         className="input-field px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
