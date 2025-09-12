@@ -40,7 +40,7 @@ const ResetPassword = () => {
             setPassword('');
             setConfirmPassword('');
         }catch(error){
-            console.log(error)
+            console.log("this is the error : ",error)
             toast.error("Unable to reset your password!")
         }finally{
             setLoading(false)

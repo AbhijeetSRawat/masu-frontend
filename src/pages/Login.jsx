@@ -104,7 +104,7 @@ const Login = () => {
       dispatch(setLoading(true));
       const response = await apiConnector("POST", LOGIN_API, formData);
 
-      console.log(response);
+      console.log('this is response : ',response);
       dispatch(setToken(response.data.token));
       dispatch(setSignupData(response.data.data));
       dispatch(setRole(response.data.data.user.role));
@@ -116,7 +116,7 @@ const Login = () => {
         navigate("/adminpanel");
       } else if (response.data.data.user.role === "subadmin") {
         dispatch(setSubAdminPermissions(response.data.data.user.permissions))
-        getCompanyDetails(response.data.data.user.companyId._id);
+        dispatch(setCompany(response.data.data.user.companyId));
         navigate("/subadminpanel");
       } else {
         dispatch(setReduxEmployee(response.data.data.user));
