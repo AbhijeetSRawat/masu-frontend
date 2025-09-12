@@ -28,7 +28,7 @@ const SuperAdminHeader = () => {
         </div>
       </div>
 
-      {/* Center - MASU Consultancy Logo and Name */}
+      {/* Center - MASU Consultancy Logo and Name
       <div className="flex items-center justify-center flex-1 lg:flex-none lg:absolute lg:left-7/12 lg:transform lg:-translate-x-1/2">
         <div className="flex items-center bg-white/15 backdrop-blur-md rounded-2xl px-6 py-3 border-2 border-purple-300/30 shadow-2xl">
           <img 
@@ -46,7 +46,7 @@ const SuperAdminHeader = () => {
             </p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Right side - Super Admin Controls */}
       <div className="flex items-center space-x-3">
