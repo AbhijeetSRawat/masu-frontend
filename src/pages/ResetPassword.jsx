@@ -4,7 +4,8 @@ import Footer from '../components/Footer'
 import { endpoints } from '../services/api'
 import { apiConnector } from '../services/apiConnector';
 import toast from 'react-hot-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 const {RESET_PASSWORD} = endpoints;
 
@@ -12,6 +13,9 @@ const ResetPassword = () => {
 
     const [password,setPassword] = useState('');
     const [confirmPassword,setConfirmPassword] = useState('');
+
+    const employeetoken = useSelector(state => state.auth.token)
+    const navigate = useNavigate();
 
     const [loading,setLoading] = useState(false);
 
@@ -37,11 +41,15 @@ const ResetPassword = () => {
             const data = await apiConnector("POST",RESET_PASSWORD + token,{password});
             console.log(data);
             toast.success("Your password has been reset!");
+            if(!employeetoken){
+                navigate('/login')
+            }
             setPassword('');
             setConfirmPassword('');
         }catch(error){
             console.log("this is the error : ",error)
             toast.error("Unable to reset your password!")
+            navigate('/forgetpassword')
         }finally{
             setLoading(false)
         }

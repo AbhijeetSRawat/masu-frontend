@@ -118,7 +118,17 @@ const Login = () => {
         dispatch(setSubAdminPermissions(response.data.data.user.permissions))
         dispatch(setCompany(response.data.data.user.companyId));
         navigate("/subadminpanel");
-      } else {
+      } 
+      else if (response.data.data.user.role === "manager") {
+        dispatch(setReduxEmployee(response.data.data.user));
+        dispatch(setCompany(response.data.data.user.companyId));
+        navigate("/managerpanel");
+      }
+      else if (response.data.data.user.role === "hr") {
+        dispatch(setReduxEmployee(response.data.data.user));
+        dispatch(setCompany(response.data.data.user.companyId));
+        navigate("/hrpanel");
+      }else {
         dispatch(setReduxEmployee(response.data.data.user));
         console.log(response)
         dispatch(setCompany(response.data.data.user.companyId));

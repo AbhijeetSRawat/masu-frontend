@@ -170,7 +170,7 @@ function App() {
           )}
           
 
-          {["superadmin", "admin", "subadmin"].includes(role) && (
+          {["superadmin", "admin", "subadmin","hr",'manager'].includes(role) && (
             <>
               <Route
                 path="/subadminpanel"

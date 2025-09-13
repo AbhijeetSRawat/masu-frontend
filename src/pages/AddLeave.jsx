@@ -7,7 +7,7 @@ import { apiConnector } from "../services/apiConnector";
 import toast from "react-hot-toast";
 import EmployeeHeader from "../components/EmployeeHeader";
 
-const { APPLY_LEAVE, GET_EMPLOYEE_LEAVES, cancelLeave } = leaveEndpoints;
+const { APPLY_LEAVE, GET_EMPLOYEE_LEAVES, CANCEL_LEAVE } = leaveEndpoints;
 const { getLeavePolicy } = leavepolicyendpoints;
 
 const AddLeave = () => {
@@ -301,11 +301,11 @@ const AddLeave = () => {
   const getEmployeeLeaves = async () => {
     try {
       dispatch(setLoading(true));
-      console.log("Fetching leaves for employee:", employee._id);
+     
 
       const result = await apiConnector(
         "GET",
-        `${GET_EMPLOYEE_LEAVES}${company._id}/${employee._id}`,
+        `${GET_EMPLOYEE_LEAVES}${employee.user._id}`,
         null,
         {
           Authorization: `Bearer ${token}`,
@@ -360,9 +360,10 @@ const AddLeave = () => {
 
     try {
       dispatch(setLoading(true));
+      console.log(leaveId , employee.user._id)
       const result = await apiConnector(
-        "PATCH",
-        `${cancelLeave}${leaveId}/cancel`,
+        "PUT",
+        `${CANCEL_LEAVE}${leaveId}/${employee.user._id}/cancel`,
         null,
         {
           Authorization: `Bearer ${token}`,

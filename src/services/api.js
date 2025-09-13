@@ -69,21 +69,22 @@ export const policiesEndpoints = {
 
 //LEAVE ENDPOINTS
 export const leaveEndpoints = {
-  APPLY_LEAVE : BASE_URL + "/api/leave/leaves/apply",
+  APPLY_LEAVE : BASE_URL + "/api/leave/apply",
   // GET_LEAVE : BASE_URL + "/api/leave/leaves/get/",
   // UPDATE_LEAVE_STATUS : BASE_URL + "/api/leave/update/",
-  GET_EMPLOYEE_LEAVES : BASE_URL + "/api/leave/leaves/",
+  GET_EMPLOYEE_LEAVES : BASE_URL + "/api/leave/employee/leaves/",
+  GET_MANAGER_LEAVES : BASE_URL + "/api/leave/manager/leaves/",
+  GET_HR_LEAVES : BASE_URL + "/api/leave/hr/leaves/",
+  GET_ADMIN_LEAVES : BASE_URL + "/api/leave/admin/leaves/",
   // GET_COMPANY_LEAVES : BASE_URL + "/api/leave/getCompany/",
   // UPDATE_LEAVE : BASE_URL + "/api/leave/leaves/",
-  approveLeave : BASE_URL + "/api/leave/leaves/",
-  rejectLeave : BASE_URL + "/api/leave/leaves/",
-  cancelLeave : BASE_URL + "/api/leave/leaves/",
-  getCompanyLeaves : BASE_URL + "/api/leave/leaves/",
-  getApprovedLeavesForCompany : BASE_URL + "/api/leave/approvedleaves/",
-  getPendingLeavesForCompany : BASE_URL + "/api/leave/pendingleaves/",
-  getCancelledLeavesForCompany : BASE_URL + "/api/leave/cancelledleaves/",
-  getRejectedLeavesForCompany : BASE_URL + "/api/leave/rejectedleaves/",
-  getRestLeaveofEmployee : BASE_URL + "/api/leave/",
+  MANAGER_APPROVE : BASE_URL + "/api/leave/",
+  HR_APPROVE : BASE_URL + "/api/leave/",
+  ADMIN_APPROVE : BASE_URL + "/api/leave/",
+  REJECT_LEAVE : BASE_URL + "/api/leave/",
+  GET_PENDING_LEAVES_BY_LEVEL : BASE_URL + "/api/leave/pending/",
+  CANCEL_LEAVE : BASE_URL + "/api/leave/",
+  GET_CANCELLED_LEAVES_FOR_COMPANY : BASE_URL + "/api/leave/company/",
   bulkUpdate : BASE_URL + "/api/leave/bulkupdate"
 }
 

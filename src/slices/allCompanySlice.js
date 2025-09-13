@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   
   loading: false,
-  allCompany:localStorage.getItem('allCompany')? JSON.parse(localStorage.getItem('allCompany')):[],
+  allCompany:[],
 };
 
 const allCompanySlice = createSlice({

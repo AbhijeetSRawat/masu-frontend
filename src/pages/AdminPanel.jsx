@@ -103,7 +103,7 @@ const AdminPanel = () => {
     } else {
       setRevisedPermissions([...cloned]);
     }
-  }, [permissions]);
+  }, []);
 
   const getAllItemsFromSection = (sectionData) => {
     if (Array.isArray(sectionData)) return sectionData;

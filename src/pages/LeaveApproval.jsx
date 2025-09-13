@@ -9,13 +9,15 @@ import { leaveEndpoints } from "../services/api";
 import AdminHeader from "../components/AdminHeader";
 import SubAdminSidebar from "../components/SubAdminSidebar";
 import SubAdminHeader from "../components/SubAdminHeader";
+import ManagerHeader from "../components/ManagerHeader";
+import ManagerSidebar from "../components/ManagerSidebar";
+import HRSidebar from "../components/HRSidebar";
+import HRHeader from "../components/HRHeader";
 
 const { 
-  getCompanyLeaves,
-  getApprovedLeavesForCompany,
-  getPendingLeavesForCompany,
-  getCancelledLeavesForCompany,
-  getRejectedLeavesForCompany,
+  GET_HR_LEAVES,
+  GET_ADMIN_LEAVES,
+  GET_MANAGER_LEAVES,
   approveLeave,
   rejectLeave,
   bulkUpdate
@@ -35,6 +37,8 @@ const LeaveApproval = () => {
     const role = useSelector( state => state.auth.role)
     const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
   
+  const employee = useSelector((state) => state.employees.reduxEmployee);
+
   // Bulk selection states
   const [selectedIds, setSelectedIds] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -53,60 +57,59 @@ const LeaveApproval = () => {
   const loading = useSelector((state) => state.permissions.loading);
 
   const fetchLeaves = async (status = statusFilter, page = 1) => {
-    try {
-      dispatch(setLoading(true));
+  try {
+    dispatch(setLoading(true));
 
-      let endpoint;
-      switch (status) {
-        case 'approved':
-          endpoint = getApprovedLeavesForCompany;
-          break;
-        case 'rejected':
-          endpoint = getRejectedLeavesForCompany;
-          break;
-        case 'cancelled':
-          endpoint = getCancelledLeavesForCompany;
-          break;
-        case 'pending':
-        default:
-          endpoint = getPendingLeavesForCompany;
-          break;
-      }
-
-      const result = await apiConnector(
-        "GET",
-        `${endpoint}${company._id}?page=${page}&limit=${pagination.limit}`,
-        null,
-        {
-          Authorization: `Bearer ${token}`
-        }
-      );
-
-      console.log(result);
-
-      if (result.data.success) {
-        setLeaves(result.data.leaves || []);
-        setPagination({
-          page: result.data.page,
-          totalPages: result.data.totalPages,
-          total: result.data.total,
-          limit: pagination.limit
-        });
-        
-        // Reset bulk selection when fetching new data
-        setSelectedIds([]);
-        setSelectAll(false);
-        
-        toast.success(`${status.charAt(0).toUpperCase() + status.slice(1)} leaves fetched successfully!`);
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Unable to fetch leaves!");
-      setLeaves([]);
-    } finally {
+    let baseEndpoint;
+    if (role === "hr") {
+      baseEndpoint = GET_HR_LEAVES;
+    } else if (role === "manager") {
+      baseEndpoint = GET_MANAGER_LEAVES;
+    } else if (role === "admin" || role === "superadmin") {
+      baseEndpoint = GET_ADMIN_LEAVES;
+    } else {
+      // fallback or throw error
+      toast.error("User role not authorized to fetch leaves");
       dispatch(setLoading(false));
+      return;
     }
-  };
+
+    console.log(employee)
+
+    const url = `${baseEndpoint}${employee.id}`;
+
+    const result = await apiConnector("GET", url, null, {
+      Authorization: `Bearer ${token}`,
+    });
+
+    console.log(result);
+
+    if (result.data.success) {
+      setLeaves(result.data.leaves || []);
+      setPagination({
+        page: result.data.page,
+        totalPages: result.data.totalPages,
+        total: result.data.total,
+        limit: pagination.limit,
+      });
+
+      // Reset bulk selection when fetching new data
+      setSelectedIds([]);
+      setSelectAll(false);
+
+      toast.success(
+        `${status.charAt(0).toUpperCase() + status.slice(1)} leaves fetched successfully!`
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error("Unable to fetch leaves!");
+    setLeaves([]);
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
 
   // Bulk selection handlers
   const toggleSelectAll = () => {
@@ -316,18 +319,29 @@ const LeaveApproval = () => {
 
   return (
     <div className="flex">
-     {
-        (role === 'superadmin')
-          ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
-          : (role === 'admin' ? <AdminSidebar /> : <SubAdminSidebar />)
-      }
+     
+       {
+  role === 'superadmin' 
+    ? (subAdminPermissions !== null ? <SubAdminSidebar /> : <AdminSidebar />)
+    : role === 'admin' 
+      ? <AdminSidebar /> 
+      : role === 'manager'
+        ? <ManagerSidebar />
+        : role === 'hr'
+          ? <HRSidebar />
+          : <SubAdminSidebar />
+}
 
+      
       
       <div className="w-full lg:ml-[20vw] lg:w-[80vw]">
         {
         (role === 'superadmin')
           ? (subAdminPermissions !== null ? <SubAdminHeader /> : <AdminHeader />)
-          : (role === 'admin' ? <AdminHeader/> : <SubAdminHeader />)
+          : role === 'admin' ? <AdminHeader/> :
+            role === 'manager' ? <ManagerHeader/>:
+            role === 'hr'?<HRHeader/>:
+             <SubAdminHeader />
       }
 
 
