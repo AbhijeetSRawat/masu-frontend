@@ -65,24 +65,7 @@ const ManagerHeader = () => {
             </div>
           </div>
 
-          {/* Center - Company Logo and Name */}
-          <div className="flex items-center justify-center flex-1 lg:flex-none lg:absolute lg:left-8/14 lg:transform lg:-translate-x-1/2">
-            <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
-              <img
-                src={company?.thumbnail || userlogo}
-                alt="company logo"
-                className="h-8 w-8 lg:h-10 lg:w-10 rounded-lg mr-3 border-2 border-white/30 shadow-sm"
-              />
-              <div className="text-center">
-                <h1 className="text-lg lg:text-xl font-bold text-white">
-                  {company?.name || "Company"}
-                </h1>
-                <p className="text-xs text-gray-200 font-medium tracking-wide">
-                  MANAGEMENT SYSTEM
-                </p>
-              </div>
-            </div>
-          </div>
+         
 
           {/* Right side - Admin Actions */}
           <div className="flex items-center space-x-3">

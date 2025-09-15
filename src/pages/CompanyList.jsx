@@ -881,11 +881,12 @@ const CompanyList = () => {
                     <td className="px-4 py-2">
                       <button
                         onClick={() => {
+                          
                           dispatch(setPermissions(company.permissions || []));
                           dispatch(setCompany(company));
                           dispatch(setReduxShifts(null));
                           dispatch(setReduxManagers(null));
-                          dispatch(setReduxEmployee(null));
+                          dispatch(setReduxEmployee(company.adminUser));
                           dispatch(setReduxDepartments(null));
                           navigate("/adminpanel");
                         }}

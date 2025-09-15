@@ -16,6 +16,9 @@ const HRSidebar = () => {
   const [show, setShow] = useState(false);
   const [expanded, setExpanded] = useState({});
 
+ const company = useSelector(state => state.permissions.company)
+
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -145,10 +148,10 @@ const HRSidebar = () => {
           <IoIosClose />
         </div>
 
-        {/* Logo */}
-        <div className="w-full px-4">
-          <img src={logo} alt="MASU Consultancy" className="w-full h-auto" />
-        </div>
+       {/* Logo */}
+               <div className="w-full flex justify-center px-4">
+                 <img src={ company.thumbnail || userlogo } alt="MASU Consultancy" className=" h-[25vh] rounded-4xl" />
+               </div>
 
         {/* Manager Header */}
         <div onClick={() => navigate('/managerpanel')} className="w-[90%] cursor-pointer h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">

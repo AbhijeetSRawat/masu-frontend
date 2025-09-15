@@ -85,7 +85,7 @@ export const leaveEndpoints = {
   GET_PENDING_LEAVES_BY_LEVEL : BASE_URL + "/api/leave/pending/",
   CANCEL_LEAVE : BASE_URL + "/api/leave/",
   GET_CANCELLED_LEAVES_FOR_COMPANY : BASE_URL + "/api/leave/company/",
-  bulkUpdate : BASE_URL + "/api/leave/bulkupdate"
+  bulkUpdate : BASE_URL + "/api/leave/bulk/update"
 }
 
 //REIMBURSEMENTS ENDPOINTS

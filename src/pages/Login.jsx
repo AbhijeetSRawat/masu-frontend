@@ -112,10 +112,13 @@ const Login = () => {
       if (response.data.data.user.role === "superadmin") {
         navigate("/dashboard");
       } else if (response.data.data.user.role === "admin") {
-        getCompanyDetails(response.data.data.user.companyId);
+        dispatch(setCompany(response.data.data.user.companyId))
+         dispatch(setReduxEmployee(response.data.data.user));
+        dispatch(setPermissions(response.data.data.user.companyId.permissions))
         navigate("/adminpanel");
       } else if (response.data.data.user.role === "subadmin") {
         dispatch(setSubAdminPermissions(response.data.data.user.permissions))
+         dispatch(setReduxEmployee(response.data.data.user));
         dispatch(setCompany(response.data.data.user.companyId));
         navigate("/subadminpanel");
       } 
