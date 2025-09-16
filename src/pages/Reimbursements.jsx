@@ -10,9 +10,10 @@ import { apiConnector } from "../services/apiConnector";
 import toast from "react-hot-toast";
 import EmployeeHeader from "../components/EmployeeHeader";
 
-const { CREATE_REIMBURSEMENT, GET_EMPLOYEE_REIMBURSEMENTS } =
-  reimbursementsEndpoints;
-
+const {
+  applyReimbursement,
+  getReimbursemtnsForEmployee,
+} = reimbursementsEndpoints;
 const { GET_ALL_CATEGORY } = reimbursementCategoryEndpoints;
 
 const Reimbursements = () => {
@@ -32,13 +33,12 @@ const Reimbursements = () => {
 
   const [selectedReimbursement, setSelectedReimbursement] = useState(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [reimbursementcategory, setReimbursementCategory] = useState([]);
-
+  const [reimbursementCategory, setReimbursementCategory] = useState([]);
   const [reimbursements, setReimbursements] = useState([]);
-  //const [isEditMode, setIsEditMode] = useState(false);
 
   const dispatch = useDispatch();
 
+  // Employee applies for a reimbursement
   const addReimbursement = async (e) => {
     e.preventDefault();
     const form = new FormData();
@@ -49,19 +49,14 @@ const Reimbursements = () => {
     form.append("description", newReimbursement.description);
     form.append("date", newReimbursement.date);
     if (newReimbursement.receipt) {
-      form.append("recipt", newReimbursement.receipt);
+      form.append("recipt", newReimbursement.receipt); // Correct: backend expects "recipt"
     }
-
     try {
       dispatch(setLoading(true));
-      console.log("token is => ", token);
-      console.log("employee", employee);
-      const response = await apiConnector("POST", CREATE_REIMBURSEMENT, form, {
+      await apiConnector("POST", applyReimbursement, form, {
         Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       });
-
-      console.log("response from backend is : ", response);
       toast.success("Reimbursement submitted successfully!");
       getEmployeeReimbursements();
       setIsAddModalOpen(false);
@@ -73,36 +68,33 @@ const Reimbursements = () => {
         receipt: null,
       });
     } catch (error) {
-      console.error(error);
       toast.error("Failed to submit reimbursement.");
     } finally {
       dispatch(setLoading(false));
     }
   };
 
+  // Employee gets all their reimbursements
   const getEmployeeReimbursements = async () => {
     try {
-      setLoading(true);
-      console.log("this is employee id : ", employee);
+      dispatch(setLoading(true));
       const result = await apiConnector(
         "GET",
-        GET_EMPLOYEE_REIMBURSEMENTS + employee._id,
+        getReimbursemtnsForEmployee + employee._id,
         null,
         {
           Authorization: `Bearer ${token}`,
         }
       );
-      setReimbursements(result.data.data);
-      console.log(result.data.data);
-      toast.success("All reimbursements fetched successfully!");
+      setReimbursements(result.data.reimbursements || []);
     } catch (error) {
-      console.log(error);
       toast.error("Unable to fetch your reimbursements!");
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
+  // Get all reimbursement categories for dropdown
   const getReimbursementCategory = async () => {
     try {
       dispatch(setLoading(true));
@@ -115,10 +107,7 @@ const Reimbursements = () => {
         }
       );
       setReimbursementCategory(result.data.data || []);
-      console.log(result);
-      toast.success("Reimbursement Categories fetched successfully!");
     } catch (error) {
-      console.error(error);
       toast.error("Unable to fetch reimbursement category!");
     } finally {
       dispatch(setLoading(false));
@@ -128,18 +117,17 @@ const Reimbursements = () => {
   useEffect(() => {
     getEmployeeReimbursements();
     getReimbursementCategory();
+    // eslint-disable-next-line
   }, []);
 
   return (
     <div className="relative">
       <EmployeeSidebar />
       <div className="w-full lg:ml-[20vw] lg:w-[80vw] pr-4 pb-10">
-         {/* Employee panel bar */}
-      <EmployeeHeader/>
+        <EmployeeHeader />
         <h2 className="text-3xl mt-4 font-semibold mb-6 text-center">
           Reimbursements List
         </h2>
-
         {loading ? (
           <div className="h-[92vh] flex justify-center items-center">
             <div className="spinner" />
@@ -164,27 +152,40 @@ const Reimbursements = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {reimbursements?.map((item, index) => (
-                    <tr key={index} className="border-t border-gray-300">
-                      <td className="px-4 py-2">{item?.category?.name}</td>
-                      <td className="px-4 py-2">₹{item.amount}</td>
-                      <td className="px-4 py-2">
-                        {new Date(item.date).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-2 capitalize">{item.status}</td>
-                      <td className="px-4 py-2">
-                        <button
-                          onClick={() => {
-                            setSelectedReimbursement(item);
-                            setIsViewModalOpen(true);
-                          }}
-                          className="text-sm bg-blue-700 text-white px-3 py-1 rounded"
-                        >
-                          View
-                        </button>
+                  {reimbursements.length === 0 ? (
+                    <tr>
+                      <td
+                        className="p-6 text-center text-gray-500"
+                        colSpan={5}
+                      >
+                        No reimbursements found.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    reimbursements.map((item, index) => (
+                      <tr key={index} className="border-t border-gray-300">
+                        <td className="px-4 py-2">{item?.category?.name}</td>
+                        <td className="px-4 py-2">₹{item.amount}</td>
+                        <td className="px-4 py-2">
+                          {new Date(item.date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-2 capitalize">
+                          {item.status}
+                        </td>
+                        <td className="px-4 py-2">
+                          <button
+                            onClick={() => {
+                              setSelectedReimbursement(item);
+                              setIsViewModalOpen(true);
+                            }}
+                            className="text-sm bg-blue-700 text-white px-3 py-1 rounded"
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -204,9 +205,7 @@ const Reimbursements = () => {
                     </li>
                     <li>
                       <strong>Date:</strong>{" "}
-                      {new Date(
-                        selectedReimbursement.date
-                      ).toLocaleDateString()}
+                      {new Date(selectedReimbursement.date).toLocaleDateString()}
                     </li>
                     <li>
                       <strong>Description:</strong>{" "}
@@ -252,12 +251,10 @@ const Reimbursements = () => {
               <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
                 <div className="bg-white rounded-lg p-6 w-[90vw] max-w-md shadow-lg">
                   <h3 className="text-xl font-bold mb-4">Add Reimbursement</h3>
-
                   <form
                     onSubmit={addReimbursement}
                     className="space-y-4 text-sm"
                   >
-                    {/* Category Dropdown */}
                     <div>
                       <label className="font-medium">Category</label>
                       <select
@@ -265,21 +262,20 @@ const Reimbursements = () => {
                         onChange={(e) =>
                           setNewReimbursement((prev) => ({
                             ...prev,
-                            category: e.target.value, // stores the ObjectId
+                            category: e.target.value,
                           }))
                         }
                         className="input-field"
+                        required
                       >
                         <option value="">Select category</option>
-                        {reimbursementcategory.map((cat) => (
+                        {reimbursementCategory.map((cat) => (
                           <option key={cat._id} value={cat._id}>
                             {cat.name}
                           </option>
                         ))}
                       </select>
                     </div>
-
-                    {/* Other Fields */}
                     <input
                       type="number"
                       placeholder="Amount"
@@ -293,7 +289,6 @@ const Reimbursements = () => {
                       className="input-field"
                       required
                     />
-
                     <textarea
                       placeholder="Description"
                       value={newReimbursement.description}
@@ -306,7 +301,6 @@ const Reimbursements = () => {
                       className="input-field"
                       rows={3}
                     />
-
                     <input
                       type="date"
                       value={newReimbursement.date}
@@ -319,7 +313,6 @@ const Reimbursements = () => {
                       className="input-field"
                       required
                     />
-
                     <input
                       type="file"
                       accept="image/*,.pdf"
@@ -331,8 +324,6 @@ const Reimbursements = () => {
                       }
                       className="input-field"
                     />
-
-                    {/* Actions */}
                     <div className="mt-4 flex justify-end gap-3">
                       <button
                         type="button"

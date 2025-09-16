@@ -90,11 +90,18 @@ export const leaveEndpoints = {
 
 //REIMBURSEMENTS ENDPOINTS
 export const reimbursementsEndpoints ={
-  CREATE_REIMBURSEMENT : BASE_URL + "/api/reimbursements/",
-  GET_COMPANY_REIMBURSEMENTS : BASE_URL + "/api/reimbursements/company/",
-  UPDATE_REIMBURSEMENTS_STATUS : BASE_URL + "/api/reimbursements/",
-  GET_EMPLOYEE_REIMBURSEMENTS : BASE_URL + "/api/reimbursements/employee/",
-  BULK_UPDATE_REIMBURSEMENT_STATUS : BASE_URL + "/api/reimbursements/bulkupdate"
+  applyReimbursement : BASE_URL + "/api/reimbursements/apply",
+  managerApprove : BASE_URL + "/api/reimbursements/manager/approve/",
+  hrApprove : BASE_URL + "/api/reimbursements/hr/approve/",
+  adminApprove :  BASE_URL + "/api/reimbursements/admin/approve/",
+  reject :  BASE_URL + "/api/reimbursements/reject/",
+  bulkUpdate :  BASE_URL + "/api/reimbursements/bulk-update",
+  getPendingReimbursementsByLevel :  BASE_URL + "/api/reimbursements/pending/",
+  getReimbursementsForManager :  BASE_URL + "/api/reimbursements/manager/",
+  getReimbursementsForHr :  BASE_URL + "/api/reimbursements/hr/",
+  getReimbursementsForAdmin :  BASE_URL + "/api/reimbursements/admin/",
+  getReimbursemtnsForEmployee :  BASE_URL + "/api/reimbursements/employee/",
+  markAsPaid : BASE_URL + "/api/reimbursements/admin/mark-as-paid/"
 }
 
 //REIMBURSEMENTS CATEGORY ENDPOINTS
