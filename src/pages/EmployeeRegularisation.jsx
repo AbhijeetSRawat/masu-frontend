@@ -269,7 +269,7 @@ const EmployeeRegularisation = () => {
       };
 
       const res = await apiConnector(
-        "PUT", 
+        "PATCH", 
         `${updateRegularization}${selectedRegularization._id}`, 
         payload,
         { Authorization: `Bearer ${token}` }

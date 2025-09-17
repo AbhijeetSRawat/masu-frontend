@@ -151,7 +151,15 @@ export const regularizationEndpoints = {
   createRegularization : BASE_URL + "/api/regularization/",
   updateRegularization : BASE_URL + "/api/regularization/",
   deleteRegularization : BASE_URL + "/api/regularization/",
-  bulkUpdateRegularizations : BASE_URL + "/api/regularization/bulkupdate"
+  bulkUpdateRegularizations : BASE_URL + "/api/regularization/bulkupdate",
+  managerApproveRegularization : BASE_URL + "/api/regularization/",
+  hrApproveRegularization : BASE_URL + "/api/regularization/",
+  adminApproveRegularization : BASE_URL + "/api/regularization/",
+  rejectRegularization : BASE_URL + "/api/regularization/",
+  getPendingRegularizationsByLevel : BASE_URL + "/api/regularization/pending/",
+   getPendingRegularizationsForManager : BASE_URL + "/api/regularization/manager/",
+    getPendingRegularizationsForHr : BASE_URL + "/api/regularization/hr/",
+     getPendingRegularizationsForAdmin : BASE_URL + "/api/regularization/admin/",
 } 
 
 //subadmin endpoints
