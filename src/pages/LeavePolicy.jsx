@@ -97,7 +97,9 @@ const LeavePolicy = () => {
     const fetchLeavePolicy = async () => {
         try {
             dispatch(setLoading(true));
-            const response = await apiConnector('GET', getLeavePolicy + company._id);
+            const response = await apiConnector('GET', getLeavePolicy + company._id,null,{
+                Authorization : `Bearer ${token}`,
+            });
 
             console.log(response)
             
@@ -133,6 +135,8 @@ const LeavePolicy = () => {
                 company: company._id,
                 ...policyData,
                 leaveTypes: [] // Start with empty leave types
+            },{
+                Authorization : `Bearer ${token}`,
             });
             
             if (response.data.success) {
@@ -155,7 +159,9 @@ const LeavePolicy = () => {
             dispatch(setLoading(true));
             // Remove company from update data as it's not allowed to be updated
             const { company: _, ...updateData } = policyData;
-            const response = await apiConnector('PUT', `${updateLeavePolicy}${policyId}`, updateData);
+            const response = await apiConnector('PUT', `${updateLeavePolicy}${policyId}`, updateData,{
+                Authorization : `Bearer ${token}`,
+            });
             
             if (response.data.success) {
                 toast.success('Leave policy updated successfully');
@@ -202,7 +208,9 @@ const LeavePolicy = () => {
             if (editingIndex >= 0) {
                 // Update existing leave type
                 const leaveTypeId = leaveTypes[editingIndex]._id;
-                const response = await apiConnector('PUT', `${updateLeaveType}${policyId}/type/${leaveTypeId}`, currentLeaveType);
+                const response = await apiConnector('PUT', `${updateLeaveType}${policyId}/type/${leaveTypeId}`, currentLeaveType,{
+                    Authorization : `Bearer ${token}`,
+                });
                 
                 if (response.data.success) {
                     toast.success('Leave type updated successfully');
@@ -210,7 +218,9 @@ const LeavePolicy = () => {
                 }
             } else {
                 // Add new leave type - Fixed endpoint URL
-                const response = await apiConnector('POST', `${addLeaveType}${policyId}/type`, currentLeaveType);
+                const response = await apiConnector('POST', `${addLeaveType}${policyId}/type`, currentLeaveType,{
+                    Authorization : `Bearer ${token}`,
+                });
                 
                 if (response.data.success) {
                     toast.success('Leave type added successfully');
@@ -233,7 +243,9 @@ const LeavePolicy = () => {
         try {
             dispatch(setLoading(true));
             const leaveTypeId = leaveTypes[index]._id;
-            const response = await apiConnector('PATCH', `${toggleLeaveTypeStatus}${policyId}/leave-types/${leaveTypeId}/toggle`);
+            const response = await apiConnector('PATCH', `${toggleLeaveTypeStatus}${policyId}/leave-types/${leaveTypeId}/toggle`,null,{
+                Authorization : `Bearer ${token}`,
+            });
             
             if (response.data.success) {
                 toast.success(response.data.message);

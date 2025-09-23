@@ -59,7 +59,9 @@ const EmployeeMasterInformation = () => {
   const getAllShifts = async () => {
     try {
       dispatch(setLoading(true));
-      const response = await apiConnector("GET", GET_ALL_SHIFTS + company._id);
+      const response = await apiConnector("GET", GET_ALL_SHIFTS + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setShifts(response.data.data);
       dispatch(setReduxShifts(response.data.data));
     } catch (err) {
@@ -73,7 +75,9 @@ const EmployeeMasterInformation = () => {
   const getAllManagers = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_ALL_MANAGER + company._id);
+      const res = await apiConnector("GET", GET_ALL_MANAGER + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setManagers(res.data.data);
       console.log(res.data.data);
       dispatch(setReduxManagers(res.data.data));
@@ -88,7 +92,9 @@ const EmployeeMasterInformation = () => {
   const getAllDepartments = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id);
+      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       console.log(res.data.data);
       dispatch(setReduxDepartments(res.data.data));
       setDepartments(res.data.data);
@@ -130,7 +136,9 @@ const EmployeeMasterInformation = () => {
       dispatch(setLoading(true));
       const res = await apiConnector(
         "GET",
-        `${GET_ALL_EMPLOYEE_BY_COMPANY_ID}${company._id}?page=${page}&limit=${limit}&search=${search}`
+        `${GET_ALL_EMPLOYEE_BY_COMPANY_ID}${company._id}?page=${page}&limit=${limit}&search=${search}`,
+        null,
+        {Authorization : `Bearer ${token}`,}
       );
       console.log("response after fetching all employees are : ",res);
 

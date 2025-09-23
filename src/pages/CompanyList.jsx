@@ -24,6 +24,8 @@ const CompanyList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
 
+  const token = useSelector(state => state.auth.token)
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const loading = useSelector((state) => state.allCompany.loading);
@@ -31,7 +33,9 @@ const CompanyList = () => {
   const getCompanyList = async () => {
     try {
       dispatch(setLoading(true));
-      const response = await apiConnector("GET", COMPANY_LIST_API);
+      const response = await apiConnector("GET", COMPANY_LIST_API,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setCompanyList(response.data?.data || []);
       dispatch(setAllCompany(response.data?.data || []));
     } catch (error) {
@@ -44,7 +48,9 @@ const CompanyList = () => {
   const downloadCompanyDetails = async (company) => {
     try {
       dispatch(setLoading(true));
-      const response = await apiConnector("GET", `${DOWNLOAD_COMPANY_DETAILS}${company._id}`);
+      const response = await apiConnector("GET", `${DOWNLOAD_COMPANY_DETAILS}${company._id}`,null,{
+        Authorization : `Bearer ${token}`,
+      });
       console.log(response.data);
       const companyData = response.data || company;
       generateHTMLPDF(companyData);
@@ -722,6 +728,8 @@ const CompanyList = () => {
       const response = await apiConnector("POST", PERMISSIONS_API, {
         companyId: selectedCompany.companyId,
         permissions: givenPermissions,
+      },{
+        Authorization : `Bearer ${token}`,
       });
       toast.success("Permissions updated successfully");
       getCompanyList();
@@ -781,7 +789,9 @@ const CompanyList = () => {
 
     try {
       dispatch(setLoading(true));
-      const data = await apiConnector("POST", UPDATE_DETAILS_API + editedCompany._id, form);
+      const data = await apiConnector("POST", UPDATE_DETAILS_API + editedCompany._id, form,{
+        Authorization : `Bearer ${token}`,
+      });
       toast.success("Company details Updated successfully!");
       getCompanyList();
     } catch (error) {

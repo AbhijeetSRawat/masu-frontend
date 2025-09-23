@@ -85,7 +85,8 @@ export const leaveEndpoints = {
   GET_PENDING_LEAVES_BY_LEVEL : BASE_URL + "/api/leave/pending/",
   CANCEL_LEAVE : BASE_URL + "/api/leave/",
   GET_CANCELLED_LEAVES_FOR_COMPANY : BASE_URL + "/api/leave/company/",
-  bulkUpdate : BASE_URL + "/api/leave/bulk/update"
+  bulkUpdate : BASE_URL + "/api/leave/bulk/update",
+  
 }
 
 //REIMBURSEMENTS ENDPOINTS
@@ -134,13 +135,18 @@ export const leavepolicyendpoints = {
 //RESIGNATION ENDPOINTS
 
 export const resignationEndpoints ={
-  APPLY_FOR_RESIGNATION : BASE_URL + "/api/resignation/apply",
+  APPLY_FOR_RESIGNATION : BASE_URL + "/api/resignation/apply/",
   WITHDRAW_RESIGNATION : BASE_URL + "/api/resignation/withdraw/",
-  APPROVE_RESIGNATION : BASE_URL + "/api/resignation/approve",
-  GET_RESIGNATION : BASE_URL + "/api/resignation/",
- GET_EMPLOYEE_RESIGNATION : BASE_URL + "/api/resignation/",
- REJECT_RESIGNATION : BASE_URL + "/api/resignation/reject",
- BULK_UPDATE : BASE_URL + "/api/resignation/bulkupdate"
+  GET_RESIGNATIONS_FOR_EMPLOYEE : BASE_URL + "/api/resignation/employee/",
+  MANAGER_APPROVE_RESIGNATION : BASE_URL + "/api/resignation/manager-approval/",
+  GET_RESIGNATION_FOR_MANAGER : BASE_URL + "/api/resignation/manager/",
+  HR_APPROVE_RESIGNATION : BASE_URL + "/api/resignation/hr-approval/",
+  GET_RESIGNATIONS_FOR_HR : BASE_URL + "/api/resignation/hr/hrId",
+  ADMIN_APPROVAL_RESIGNATION : BASE_URL + "/api/resignation/admin-approval/",
+  GET_RESIGNATIONS_FOR_ADMIN : BASE_URL + "/api/resignation/admin/",
+  BULK_UPDATE_RESIGNATIONS : BASE_URL + "/api/resignation/bulk-update",
+  REJECT_RESIGNATION : BASE_URL + "/api/resignation/reject/",
+  GET_RESIGNATIONS: BASE_URL + "/api/resignation/"
 }
 
 //regularization endpoints
@@ -151,7 +157,7 @@ export const regularizationEndpoints = {
   createRegularization : BASE_URL + "/api/regularization/",
   updateRegularization : BASE_URL + "/api/regularization/",
   deleteRegularization : BASE_URL + "/api/regularization/",
-  bulkUpdateRegularizations : BASE_URL + "/api/regularization/bulkupdate",
+  bulkUpdateRegularizations : BASE_URL + "/api/regularization/bulk/update",
   managerApproveRegularization : BASE_URL + "/api/regularization/",
   hrApproveRegularization : BASE_URL + "/api/regularization/",
   adminApproveRegularization : BASE_URL + "/api/regularization/",
@@ -170,3 +176,21 @@ export const subadminEndpoints ={
   updateDetails : BASE_URL + "/api/sub-admin/updateDetails/",
   getSubAdmins : BASE_URL + "/api/sub-admin/getDetails/"
 }
+
+//PAYROLL ENDPOINTS
+export const payrollEndpoints = {
+  CALCULATE_PAYROLL: BASE_URL + "/api/payroll/calculatePayroll",
+  DOWNLOAD_PAYSLIP_PDF: BASE_URL + "/api/payroll/downloadPaySlipPdf/",
+  DOWNLOAD_PAYSLIP_EXCEL: BASE_URL + "/api/payroll/downloadPaySlipExcel/",
+  GET_PAYROLL_HISTORY: BASE_URL + "/api/payroll/history/",
+  GET_PAYROLL_REPORT: BASE_URL + "/api/payroll/report/",
+  GET_MONTHLY_SALARY : BASE_URL + "/api/payroll/"
+}
+
+//ATTENDANCE ENDPOINTS
+export const attendanceEndpoints = {
+  getAttendances: `${BASE_URL}/api/attendance/`,
+  createAttendance: `${BASE_URL}/api/attendance/`,
+  getAttendance: `${BASE_URL}/api/attendance/`,
+};
+

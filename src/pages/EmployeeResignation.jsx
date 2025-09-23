@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import EmployeeSidebar from "../components/EmployeeSidebar";
 import EmployeeHeader from "../components/EmployeeHeader";
 
-const { APPLY_FOR_RESIGNATION, WITHDRAW_RESIGNATION, GET_EMPLOYEE_RESIGNATION } = resignationEndpoints;
+const { APPLY_FOR_RESIGNATION, WITHDRAW_RESIGNATION,  GET_RESIGNATIONS_FOR_EMPLOYEE } = resignationEndpoints;
 
 const EmployeeResignation = () => {
   const company = useSelector((state) => state.permissions.company);
@@ -32,14 +32,16 @@ const EmployeeResignation = () => {
   const getResignationData = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", `${GET_EMPLOYEE_RESIGNATION}${user.employeeId}`, null, {
+      console.log(user)
+      const res = await apiConnector("GET", `${ GET_RESIGNATIONS_FOR_EMPLOYEE}${user._id}`, null, {
         "Authorization": `Bearer ${token}`
       });
 
-      console.log(res);
+      console.log("this is the get resignation response : ",res);
       
-      if (res.data.hasResignation && res.data.resignations.length > 0) {
+      if ( res.data.resignations.length > 0) {
         const allResignations = res.data.resignations;
+        
         setResignations(allResignations);
         setHasResignation(true);
         
@@ -87,7 +89,8 @@ const EmployeeResignation = () => {
 
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("POST", APPLY_FOR_RESIGNATION, resignationForm, {
+      
+      const res = await apiConnector("POST", APPLY_FOR_RESIGNATION + user.user._id , resignationForm, {
         "Authorization": `Bearer ${token}`
       });
       
@@ -111,7 +114,7 @@ const EmployeeResignation = () => {
 
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("PATCH", `${WITHDRAW_RESIGNATION}${currentResignation._id}`, {}, {
+      const res = await apiConnector("PUT", `${WITHDRAW_RESIGNATION}${currentResignation._id}`, {}, {
         "Authorization": `Bearer ${token}`
       });
       

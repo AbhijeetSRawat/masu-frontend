@@ -47,7 +47,7 @@ const EmployeeSidebar = () => {
       { name: "Tax Computation Sheet", link: "/taxcomputationsheet" },
     ],
     Attendence: [
-      { name: "Daily Attendence Records", link: "/dailyattendencerecords" },
+      { name: "Daily Attendence Records", link: "/attendence" },
       { name: "Attendence Regularization", link: "/attendenceregularization" }
     ],
     "Leave Management": [

@@ -41,6 +41,8 @@ const AddEmployee = () => {
   const role = useSelector( state => state.auth.role)
   const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
+
+
   const loading = useSelector((state) => state.permissions.loading);
   let number = 1;
   const departmentData = useSelector(
@@ -59,7 +61,9 @@ const AddEmployee = () => {
   const getAllShifts = async () => {
     try {
       dispatch(setLoading(true));
-      const response = await apiConnector("GET", GET_ALL_SHIFTS + company._id);
+      const response = await apiConnector("GET", GET_ALL_SHIFTS + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setShifts(response.data.data);
       dispatch(setReduxShifts(response.data.data));
     } catch (err) {
@@ -73,7 +77,9 @@ const AddEmployee = () => {
   const getAllManagers = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_ALL_MANAGER + company._id);
+      const res = await apiConnector("GET", GET_ALL_MANAGER + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setManagers(res.data.data);
       console.log(res.data.data);
       dispatch(setReduxManagers(res.data.data));
@@ -88,7 +94,9 @@ const AddEmployee = () => {
   const getAllDepartments = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id);
+      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       console.log(res.data.data);
       dispatch(setReduxDepartments(res.data.data));
       setDepartments(res.data.data);
@@ -130,7 +138,11 @@ const AddEmployee = () => {
       dispatch(setLoading(true));
       const res = await apiConnector(
         "GET",
-        `${GET_ALL_EMPLOYEE_BY_COMPANY_ID}${company._id}?page=${page}&limit=${limit}&search=${search}`
+        `${GET_ALL_EMPLOYEE_BY_COMPANY_ID}${company._id}?page=${page}&limit=${limit}&search=${search}`,
+        null,
+        {
+          Authorization : `Bearer ${token}`,
+        }
       );
       console.log("response after fetching all employees are : ",res);
 
@@ -469,14 +481,18 @@ const AddEmployee = () => {
       };
 
       if (isAddModalOpen) {
-        await apiConnector("POST", ADD_EMPLOYEE, payload);
+        await apiConnector("POST", ADD_EMPLOYEE, payload,{
+          Authorization : `Bearer ${token}`,
+        });
         toast.success("Employee added successfully!");
         setIsAddModalOpen(false);
       } else {
         await apiConnector(
           "PUT",
           `${EDIT_EMPLOYEE}${selectedEmployee.user._id}`,
-          payload
+          payload,{
+            Authorization : `Bearer ${token}`,
+          }
         );
         toast.success("Employee updated successfully!");
         setIsEditModalOpen(false);
@@ -592,7 +608,9 @@ const AddEmployee = () => {
 
           console.log("📦 Final CSV Payload:", payload);
 
-          const data = await apiConnector("POST", CSV_EMPLOYEE_ADD, payload);
+          const data = await apiConnector("POST", CSV_EMPLOYEE_ADD, payload,{
+            Authorization : `Bearer ${token}`,
+          });
           console.log("🧾 Server response:", data);
 
           if (data.data.failed.length === 0) {

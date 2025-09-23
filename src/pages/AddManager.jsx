@@ -68,7 +68,9 @@ const AddManager = () => {
   const getAllShifts = async () => {
     try {
       dispatch(setLoading(true));
-      const response = await apiConnector("GET", GET_ALL_SHIFTS + company._id);
+      const response = await apiConnector("GET", GET_ALL_SHIFTS + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setShifts(response.data.data);
       dispatch(setReduxShifts(response.data.data));
       toast.success("Shifts fetched successfully");
@@ -83,7 +85,9 @@ const AddManager = () => {
   const getAllManagers = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_ALL_MANAGER + company._id);
+      const res = await apiConnector("GET", GET_ALL_MANAGER + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setManagers(res.data.data);
       console.log(res.data.data);
       dispatch(setReduxManagers(res.data.data));
@@ -129,7 +133,10 @@ const AddManager = () => {
       const editData = await apiConnector(
         "PUT",
         `${EDIT_HR}${selectedManager._id}`,
-        payload
+        payload,
+        {
+          Authorization : `Bearer ${token}`,
+        }
       );
       console.log(editData);
       toast.success("Manager updated successfully");

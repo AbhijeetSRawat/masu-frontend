@@ -139,7 +139,9 @@ const AddNewJoiners = () => {
   const getAllDepartments = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id);
+      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       dispatch(setReduxDepartments(res.data.data));
       setDepartments(res.data.data);
     } catch (err) {
@@ -451,7 +453,9 @@ const AddNewJoiners = () => {
         },
       };
 
-      const response = await apiConnector("POST", ADD_EMPLOYEE, payload);
+      const response = await apiConnector("POST", ADD_EMPLOYEE, payload,{
+        Authorization : `Bearer ${token}`,
+      });
       
       
 

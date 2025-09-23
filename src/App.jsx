@@ -33,6 +33,15 @@ import { ForSmallBusiness } from "./pages/ForSmallBusiness";
 import { ForEnterprises } from "./pages/ForEnterprises";
 import { ForHRTeams } from "./pages/ForHRTeams";
 import PayrollProcessing from "./pages/PayrollProcessing";
+import PayrollManage from "./pages/PayrollManage";
+import PayrollCalculation from "./pages/PayrollCalculation";
+import PayrollCalculationReport from "./pages/PayrollCalculationReport";
+import PaySlip from "./pages/PaySlip";
+import SalaryBreakdown from "./pages/SalaryBreakdown";
+import TaxRegimeSelection from "./pages/TaxRegimeSelection";
+import TaxComputationSheet from "./pages/TaxComputationSheet";
+import Declaration from "./pages/Declaration";
+import ApprovalStatus from "./pages/ApprovalStatus";
 import TaxCompliance from "./pages/TaxCompliance";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import LeavePolicy from "./pages/LeavePolicy";
@@ -52,6 +61,8 @@ import AddSubAdmin from "./pages/AddSubAdmin";
 import SubAdminPanel from "./pages/SubAdminPanel";
 import ManagerPanel from "./pages/ManagerPanel";
 import HRPanel from "./pages/HRPanel";
+import AttendanceCalendar from "./pages/AttendenceCalender";
+
 
 function App() {
   const role = useSelector((state) => state.auth.role);
@@ -72,6 +83,12 @@ function App() {
           <Route path="/forenterprises" element={<ForEnterprises />} />
           <Route path="/forhrteams" element={<ForHRTeams />} />
           <Route path="/payrollprocessing" element={<PayrollProcessing />} />
+          <Route path="/payslip" element={<PaySlip />} />
+          <Route path="/salarybreakdown" element={<SalaryBreakdown />} />
+          <Route path="/taxregimeselection" element={<TaxRegimeSelection />} />
+          <Route path="/taxcomputationsheet" element={<TaxComputationSheet />} />
+          <Route path="/declaration" element={<Declaration />} />
+          <Route path="/approvalstatus" element={<ApprovalStatus />} />
           <Route path="/taxcompliance" element={<TaxCompliance />} />
 
           {/* for this a protected route is to be designed */}
@@ -333,6 +350,31 @@ function App() {
                   </PrivateRoute>
                 }
               />
+              <Route
+                path="/payrollmanage"
+                element={
+                  <PrivateRoute>
+                    <PayrollManage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/payrollcalculation"
+                element={
+                  <PrivateRoute>
+                    <PayrollCalculation />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/payrollcalculationreport"
+                element={
+                  <PrivateRoute>
+                    <PayrollCalculationReport />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="/attendence" element={<AttendanceCalendar />} />
             </>
           )}
 

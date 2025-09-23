@@ -43,7 +43,9 @@ const ShiftManagement = () => {
     try {
       dispatch(setLoading(true));
       const obj = { ...newShift, companyId: company._id };
-      const addData = await apiConnector("POST", ADD_SHIFT, obj);
+      const addData = await apiConnector("POST", ADD_SHIFT, obj,{
+        Authorization : `Bearer ${token}`,
+      });
 
       console.log(addData);
       toast.success("New Shift Added!");
@@ -74,7 +76,9 @@ const ShiftManagement = () => {
   const editShift = async () => {
     try {
       dispatch(setLoading(true));
-      const editData = await apiConnector("PUT", UPDATE_SHIFT + selectedShift._id, selectedShift);
+    const editData = await apiConnector("PUT", UPDATE_SHIFT + selectedShift._id, selectedShift,{
+      Authorization : `Bearer ${token}`,
+    });
 
       console.log(editData);
       toast.success("Shift edited successfully!");
@@ -91,7 +95,9 @@ const ShiftManagement = () => {
   const getAllShifts = async () => {
     try {
       dispatch(setLoading(true));
-      const shift = await apiConnector("GET", GET_ALL_SHIFTS + company._id);
+      const shift = await apiConnector("GET", GET_ALL_SHIFTS + company._id,{
+        Authorization : `Bearer ${token}`,
+      });
       console.log(shift);
       setShifts(shift.data.data);
       dispatch(setReduxShifts(shift.data.data));

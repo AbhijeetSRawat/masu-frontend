@@ -154,7 +154,7 @@ const HRSidebar = () => {
                </div>
 
         {/* Manager Header */}
-        <div onClick={() => navigate('/managerpanel')} className="w-[90%] cursor-pointer h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">
+        <div onClick={() => navigate('/hrpanel')} className="w-[90%] cursor-pointer h-[8vh] bg-blue-800 flex gap-3 pl-5 items-center text-white text-2xl font-semibold rounded-xl">
           <MdOutlineAdminPanelSettings /> HR
         </div>
 

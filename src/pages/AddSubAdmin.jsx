@@ -100,6 +100,8 @@ const AddSubAdmin = () => {
       dispatch(setLoading(true));
       const response = await apiConnector("PUT", `${updateUserPermissions}${selectedSubAdmin._id}`, {
         permissions: givenPermissions,
+      },{
+        Authorization : `Bearer ${token}`,
       });
       
       toast.success("Permissions updated successfully!");

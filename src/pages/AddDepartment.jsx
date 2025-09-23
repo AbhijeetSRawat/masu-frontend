@@ -144,7 +144,9 @@ const AddDepartment = () => {
   const getAllDepartments = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id);
+      const res = await apiConnector("GET", GET_ALL_DEPARTMENTS + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       console.log("Departments:", res.data.data);
       dispatch(setReduxDepartments(res.data.data));
       setDepartments(res.data.data);

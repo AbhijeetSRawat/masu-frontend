@@ -101,7 +101,9 @@ const CompanyHolidays = () => {
     const fetchLeavePolicy = async () => {
         try {
             dispatch(setLoading(true));
-            const response = await apiConnector('GET', getLeavePolicy + company._id);
+            const response = await apiConnector('GET', getLeavePolicy + company._id,null,{
+                Authorization : `Bearer ${token}`,
+            });
 
             console.log(response)
             
@@ -159,7 +161,9 @@ const CompanyHolidays = () => {
                     : [...policyData.holidays, currentHoliday]
             };
 
-            const response = await apiConnector('PUT', `${updateLeavePolicy}${policyId}`, payload);
+            const response = await apiConnector('PUT', `${updateLeavePolicy}${policyId}`, payload,{
+                Authorization : `Bearer ${token}`,
+            });
             
             if (response.data.success) {
                 toast.success(editingHolidayIndex >= 0 ? 'Holiday updated successfully' : 'Holiday added successfully');

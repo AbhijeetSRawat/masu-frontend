@@ -38,7 +38,11 @@ const AdminLeaveBalance = () => {
       dispatch(setLoading(true));
       const res = await apiConnector(
         "GET",
-        `${GET_ALL_EMPLOYEE_BY_COMPANY_ID}${company._id}?page=${page}&limit=${limit}`
+        `${GET_ALL_EMPLOYEE_BY_COMPANY_ID}${company._id}?page=${page}&limit=${limit}`,
+        null,
+        {
+          Authorization : `Bearer ${token}`,
+        }
       );
       dispatch(setReduxEmployees(res.data.employees));
       setCurrentPage(res.data.currentPage);
@@ -54,7 +58,9 @@ const AdminLeaveBalance = () => {
   const fetchRestLeaves = async (employeeId) => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", getRestLeaveofEmployee + employeeId + "/summary");
+      const res = await apiConnector("GET", getRestLeaveofEmployee + employeeId + "/summary",null,{
+        Authorization : `Bearer ${token}`,
+      });
       setLeaveData(res.data);
     } catch (error) {
       console.log("Error fetching leave data:", error);
@@ -66,7 +72,9 @@ const AdminLeaveBalance = () => {
 
   const fetchLeavePolicy = async () => {
     try {
-      const res = await apiConnector("GET", getLeavePolicy + company._id);
+      const res = await apiConnector("GET", getLeavePolicy + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setLeavePolicy(res.data.policy);
     } catch (error) {
       console.log("Error fetching leave policy:", error);

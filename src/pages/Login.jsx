@@ -38,7 +38,9 @@ const Login = () => {
   const getCompanyDetails = async (companyId) => {
     try {
       setLoading(true);
-      const comp = await apiConnector("GET", GET_COMPANY_DETAILS + companyId);
+      const comp = await apiConnector("GET", GET_COMPANY_DETAILS + companyId,null,{
+        Authorization : `Bearer ${token}`,
+      });
       console.log("company => ", comp);
 
       const companyData = comp.data.data;

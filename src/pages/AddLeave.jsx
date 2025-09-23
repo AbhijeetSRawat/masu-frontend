@@ -330,7 +330,9 @@ const AddLeave = () => {
   const fetchLeavePolicy = async () => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", `${getLeavePolicy}${company._id}`);
+      const res = await apiConnector("GET", `${getLeavePolicy}${company._id}`,null,{
+        Authorization : `Bearer ${token}`,
+      });
 
       if (res.data.success && res.data.policy) {
         setLeavePolicy(res.data.policy);

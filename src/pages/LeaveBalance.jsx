@@ -23,7 +23,9 @@ const LeaveBalance = () => {
   const fetchRestLeaves = async () => {
     try {
       dispatch(setLoading(true));
-      const leaves = await apiConnector("GET", getRestLeaveofEmployee + employee._id + "/summary");
+      const leaves = await apiConnector("GET", getRestLeaveofEmployee + employee._id + "/summary",null,{
+        Authorization : `Bearer ${token}`,
+      });
       setLeaveData(leaves.data);
       console.log("Leave data:", leaves.data);
     } catch (error) {
@@ -34,7 +36,9 @@ const LeaveBalance = () => {
 
   const fetchLeavePolicy = async () => {
     try {
-      const policy = await apiConnector("GET", getLeavePolicy + company._id);
+      const policy = await apiConnector("GET", getLeavePolicy + company._id,null,{
+        Authorization : `Bearer ${token}`,
+      });
       setLeavePolicy(policy.data.policy);
       console.log("Leave policy:", policy.data.policy);
     } catch (error) {

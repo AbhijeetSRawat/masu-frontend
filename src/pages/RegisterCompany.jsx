@@ -201,6 +201,7 @@ function RegisterCompany() {
 
     try {
       const response = await apiConnector("POST", REGISTER_API, form, {
+        Authorization : `Bearer ${token}`,
         headers: { "Content-Type": "multipart/form-data" },
       });
 
