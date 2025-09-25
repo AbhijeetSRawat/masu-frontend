@@ -12,7 +12,7 @@ import SubAdminSidebar from "../components/SubAdminSidebar";
 import SubAdminHeader from "../components/SubAdminHeader";
 
 const { GET_ALL_EMPLOYEE_BY_COMPANY_ID } = employeeEndpoints;
-const { getRestLeaveofEmployee } = leaveEndpoints;
+const { getRestLeaveOfEmployee } = leaveEndpoints;
 const { getLeavePolicy } = leavepolicyendpoints;
 
 const AdminLeaveBalance = () => {
@@ -21,6 +21,7 @@ const AdminLeaveBalance = () => {
   const loading = useSelector((state) => state.permissions.loading);
   const dispatch = useDispatch();
 
+  const token = useSelector(state => state.auth.token)
     const role = useSelector( state => state.auth.role)
     const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)
 
@@ -58,9 +59,10 @@ const AdminLeaveBalance = () => {
   const fetchRestLeaves = async (employeeId) => {
     try {
       dispatch(setLoading(true));
-      const res = await apiConnector("GET", getRestLeaveofEmployee + employeeId + "/summary",null,{
+      const res = await apiConnector("GET", getRestLeaveOfEmployee + employeeId + "/summary",null,{
         Authorization : `Bearer ${token}`,
       });
+      console.log(res)
       setLeaveData(res.data);
     } catch (error) {
       console.log("Error fetching leave data:", error);

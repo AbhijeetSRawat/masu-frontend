@@ -86,7 +86,7 @@ export const leaveEndpoints = {
   CANCEL_LEAVE : BASE_URL + "/api/leave/",
   GET_CANCELLED_LEAVES_FOR_COMPANY : BASE_URL + "/api/leave/company/",
   bulkUpdate : BASE_URL + "/api/leave/bulk/update",
-  
+  getRestLeaveOfEmployee : BASE_URL + "/api/leave/"
 }
 
 //REIMBURSEMENTS ENDPOINTS

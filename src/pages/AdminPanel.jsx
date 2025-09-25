@@ -36,7 +36,7 @@ const AdminPanel = () => {
       { name: "Tax Computation", link: "/taxcomputation" },
       { name: "Reimbursement", link: "/reimbursementcategory" },
       { name: "Flexi", link: "/flexi" },
-      { name: "Tax computation sheet", link: "/taxcomputationsheet" },
+      { name: "Tax computation sheet", link: "/admintaxcomputationsheet" },
       {
         name: "Investments (All sections: BOC,BOD,24b,etc.)",
         link: "/investments",
@@ -79,7 +79,7 @@ const AdminPanel = () => {
         name: "Payments & Deductions Report",
         link: "/paymentsanddeductionsreport",
       },
-      { name: "Declaration", link: "/declaration" },
+      { name: "Declaration", link: "/declarationbyadmiin" },
       { name: "Actuals", link: "/actuals" },
       { name: "Tax Computation Report", link: "/taxcomputationreport" },
       { name: "Reimbursement Report", link: "/reimbursementreport" },
