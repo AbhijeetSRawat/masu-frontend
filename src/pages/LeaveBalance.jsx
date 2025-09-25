@@ -15,6 +15,8 @@ const LeaveBalance = () => {
   const [leavePolicy, setLeavePolicy] = useState(null);
   const [tableData, setTableData] = useState([]);
 
+  const token = useSelector(state => state.auth.token)
+
   const loading = useSelector((state) => state.permissions.loading);
   const employee = useSelector((state) => state.employees.reduxEmployee);
   const company = useSelector((state) => state.permissions.company);
@@ -52,7 +54,8 @@ const LeaveBalance = () => {
 
     const processedData = leavePolicy.leaveTypes.map((leaveType) => {
       const leaveTypeName = leaveType.name;
-      const leaveTypeData = leaveData.summary[leaveTypeName];
+      // Add additional null check for summary
+      const leaveTypeData = leaveData?.summary ? leaveData.summary[leaveTypeName] || {} : {};
 
       const approvedDays = leaveTypeData?.approved?.days || 0;
       const totalAllocation = leaveType.maxInstancesPerYear || 0;
