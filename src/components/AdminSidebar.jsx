@@ -54,6 +54,7 @@ const AdminSidebar = () => {
       "Attendance": [
         { name: "Shift Management", link: "/shiftmanagement" },
         { name: "Shift Assign", link: "/shiftassign" },
+        {name: "Attendance Creation", link: "/attendancecreation"},
         { name: "Attendence Assign", link: "/attendenceassign" },
         { name: "Attendence Approval", link: "/attendenceapproval"},
       ],

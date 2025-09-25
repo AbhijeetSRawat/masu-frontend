@@ -25,7 +25,8 @@ const HRSidebar = () => {
   const structuredPermissions = {
     "Leave Management": {
       Attendance: [
-        { name: "Attendence Approval", link: "/attendenceapproval"},
+        {name: "Attendance Creation", link: "/attendancecreation"},
+        { name: "Attendance Approval", link: "/attendenceapproval"},
       ],
       Leave: [
         { name: "Leave Approval", link: "/leaveapproval" }

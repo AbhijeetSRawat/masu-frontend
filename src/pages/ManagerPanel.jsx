@@ -14,6 +14,7 @@ const ManagerPanel = () => {
   const structuredPermissions = {
     "Leave Management": {
       Attendance: [
+        {name: "Attendance Creation", link: "/attendancecreation"},
         { name: "Attendence Approval", link: "/attendenceapproval"},
       ],
       Leave: [

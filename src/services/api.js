@@ -192,5 +192,11 @@ export const attendanceEndpoints = {
   getAttendances: `${BASE_URL}/api/attendance/`,
   createAttendance: `${BASE_URL}/api/attendance/`,
   getAttendance: `${BASE_URL}/api/attendance/`,
+  getEmoployeesUnderHr : BASE_URL + '/api/attendance/employeeUnderHR/',
+  bulkAttendance : BASE_URL + '/api/attendance/bulkattendance',
+  getAttendanceByDate : BASE_URL + '/api/attendance/getbydate/',
+  updateAttendance : BASE_URL + '/api/attendance/attendance/',
+  bulkUpdateAttendance : BASE_URL + '/api/attendance/bulkupdateattendance'
 };
+
 

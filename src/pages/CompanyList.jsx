@@ -712,7 +712,7 @@ const CompanyList = () => {
     "Tax Computation", "Reimbursement", "Flexi", "Tax computation sheet",
     "Investments (All sections: BOC,BOD,24b,etc.)", "Payroll Calculation",
     "Employee Master Report", "CTC Structure Report", "Payments & Deductions Report",
-    "Declaration", "Actuals", "Tax Computation Report", "Attendence Approval",
+    "Declaration", "Actuals", "Tax Computation Report","Attendance Creation", "Attendence Approval",
     "Reimbursement Report", "Flexi Report", "LIC/Credit Society Deductions",
     "Investments Report", "Payroll Calculation Report", "Attendence Report",
     "Leave Report", "Overtime Report", "Individual Report"

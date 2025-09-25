@@ -19,6 +19,8 @@ const AddManager = () => {
   const loading = useSelector((state) => state.shifts.loading);
   const shiftsData = useSelector((state) => state.shifts.reduxShifts);
 
+  const token = useSelector(state => state.auth.token)
+
   const [shifts, setShifts] = useState([]);
   const [managers, setManagers] = useState([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

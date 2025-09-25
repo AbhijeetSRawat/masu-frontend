@@ -15,6 +15,7 @@ const CompanyHolidays = () => {
     const dispatch = useDispatch();
     const company = useSelector((state) => state.permissions.company);
     const loading = useSelector((state) => state.permissions.loading);
+      const token = useSelector(state => state.auth.token)
 
       const role = useSelector( state => state.auth.role)
       const subAdminPermissions = useSelector(state => state.permissions.subAdminPermissions)

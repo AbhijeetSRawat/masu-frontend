@@ -62,6 +62,7 @@ import SubAdminPanel from "./pages/SubAdminPanel";
 import ManagerPanel from "./pages/ManagerPanel";
 import HRPanel from "./pages/HRPanel";
 import AttendanceCalendar from "./pages/AttendenceCalender";
+import AttendanceCreation from "./pages/AttendanceCreation";
 
 
 function App() {
@@ -183,6 +184,8 @@ function App() {
                   </PrivateRoute>
                 }
               />
+
+              
             </>
           )}
           
@@ -374,6 +377,17 @@ function App() {
                   </PrivateRoute>
                 }
               />
+
+              <Route
+               path="/attendancecreation"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <AttendanceCreation/>{" "}
+                  </PrivateRoute>
+                }
+              />
+
               <Route path="/attendence" element={<AttendanceCalendar />} />
             </>
           )}
