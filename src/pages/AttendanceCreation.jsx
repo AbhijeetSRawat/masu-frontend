@@ -11,24 +11,10 @@ import HRHeader from '../components/HRHeader';
 import { apiConnector } from '../services/apiConnector';
 import { attendanceEndpoints, departmentEndpoints } from '../services/api';
 import toast from 'react-hot-toast';
-import { 
-  FaUsers, 
-  FaCalendarAlt, 
-  FaCheck, 
-  FaTimes, 
-  FaExclamationTriangle,
-  FaSearch,
-  FaFilter,
-  FaDownload,
-  FaEye,
-  FaSpinner,
-  FaChevronLeft,
-  FaChevronRight,
-  FaEdit,
-  FaClock,
-  FaBuilding,
-  FaArrowLeft,
-  FaUserTie
+import {
+  FaUsers, FaCalendarAlt, FaCheck, FaTimes, FaExclamationTriangle,
+  FaSearch, FaFilter, FaDownload, FaEye, FaSpinner, FaChevronLeft,
+  FaChevronRight, FaEdit, FaClock, FaBuilding, FaArrowLeft, FaUserTie
 } from 'react-icons/fa';
 
 // Department Selection Component for Admins
@@ -118,7 +104,7 @@ const DepartmentSelection = ({ departments, onSelectDepartment, loading, company
                 <div className="flex items-center text-sm">
                   <FaUserTie className="text-gray-400 mr-2" />
                   <span className="text-gray-600">Manager: </span>
-                  <span className="text-gray-800 font-medium">
+                  <span className="text-gray-800 font-medium ml-1">
                     {dept.manager?.user?.profile?.firstName 
                       ? `${dept.manager.user.profile.firstName} ${dept.manager.user.profile.lastName || ""}`
                       : "Not Assigned"
@@ -129,7 +115,7 @@ const DepartmentSelection = ({ departments, onSelectDepartment, loading, company
                 <div className="flex items-center text-sm">
                   <FaUsers className="text-gray-400 mr-2" />
                   <span className="text-gray-600">HR: </span>
-                  <span className="text-gray-800 font-medium">
+                  <span className="text-gray-800 font-medium ml-1">
                     {dept.hr?.user?.profile?.firstName 
                       ? `${dept.hr.user.profile.firstName} ${dept.hr.user.profile.lastName || ""}`
                       : "Not Assigned"
@@ -190,13 +176,15 @@ const AttendanceModal = ({ isOpen, onClose, attendanceData, onUpdateAttendance, 
 
         const response = await apiConnector(
           'PUT',
-          `${attendanceEndpoints.updateAttendance}${attendanceData.attendanceId}`,
+          attendanceEndpoints.updateAttendance.replace(':id', attendanceData.attendanceId),
           updateData,
           { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         );
+
+        console.log("response for update attendance : ",response);
 
         if (response.data?.attendance) {
           toast.success('Attendance updated successfully');
@@ -225,6 +213,8 @@ const AttendanceModal = ({ isOpen, onClose, attendanceData, onUpdateAttendance, 
             'Content-Type': 'application/json'
           }
         );
+
+        console.log('response for the create attendance : ',response)
 
         if (response.data) {
           toast.success('Attendance created successfully');
@@ -422,7 +412,7 @@ const AttendanceCreation = () => {
   const [departments, setDepartments] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [departmentsLoading, setDepartmentsLoading] = useState(false);
-  const [managerId, setManagerId] = useState(null); // Store the manager ID for API calls
+  const [managerId, setManagerId] = useState(null);
   
   // Modal state
   const [selectedAttendanceForModal, setSelectedAttendanceForModal] = useState(null);
@@ -448,7 +438,7 @@ const AttendanceCreation = () => {
   const token = useSelector((state) => state.auth.token);
   const user = useSelector((state) => state.employees.reduxEmployee);
   const company = useSelector((state) => state.permissions.company);
-  const reduxRole = useSelector(state => state.auth.role)
+  const reduxRole = useSelector(state => state.auth.role);
 
   const attendanceStatusOptions = [
     { value: 'present', label: 'Present', color: 'bg-green-100 text-green-800', icon: FaCheck },
@@ -501,6 +491,8 @@ const AttendanceCreation = () => {
         null,
         { Authorization: `Bearer ${token}` }
       );
+
+      console.log('response for the fetch departments : ',response)
       
       if (response.data?.data) {
         setDepartments(response.data.data);
@@ -517,7 +509,6 @@ const AttendanceCreation = () => {
   const handleDepartmentSelect = useCallback((department) => {
     setSelectedDepartment(department);
     
-    // Get the manager ID from the selected department
     const deptManagerId = department.manager?.user?._id;
     if (deptManagerId) {
       setManagerId(deptManagerId);
@@ -537,45 +528,41 @@ const AttendanceCreation = () => {
     setSelectedEmployees(new Set());
   }, []);
 
-  // Dynamic API endpoint based on user role or selected manager
+  // CORRECTED: Dynamic API endpoint based on user role or selected manager
   const getEmployeesEndpoint = useCallback(() => {
     if ((user?.role === 'admin' || user?.role === 'superadmin' || reduxRole === 'superadmin') && managerId) {
-      console.log("i am running")
-      return `${attendanceEndpoints.getEmoployeesUnderHr}${managerId}`;
+      return attendanceEndpoints.getEmployeesUnderHRorManager.replace(':userId', managerId);
     } else if (user?.role === 'manager') {
-      return `${attendanceEndpoints.getEmoployeesUnderHr}${user.id}`;
+      return attendanceEndpoints.getEmployeesUnderHRorManager.replace(':userId', user.id);
     } else {
-      return `${attendanceEndpoints.getEmoployeesUnderHr}${user.id}`;
+      return attendanceEndpoints.getEmployeesUnderHRorManager.replace(':userId', user.id);
     }
   }, [user?.role, user?.id, managerId, reduxRole]);
 
   const getAttendanceEndpoint = useCallback(() => {
     if ((user?.role === 'admin' || user?.role === 'superadmin' || reduxRole === 'superadmin') && managerId) {
-      return `${attendanceEndpoints.getAttendanceByDate}${managerId}`;
+      return attendanceEndpoints.getAttendanceByDate.replace(':userId', managerId);
     } else if (user?.role === 'manager') {
-      return `${attendanceEndpoints.getAttendanceByDate}${user.id}`;
+      return attendanceEndpoints.getAttendanceByDate.replace(':userId', user.id);
     } else {
-      return `${attendanceEndpoints.getAttendanceByDate}${user.id}`;
+      return attendanceEndpoints.getAttendanceByDate.replace(':userId', user.id);
     }
   }, [user?.role, user?.id, managerId, reduxRole]);
 
   // Auto-refresh function
   const autoRefreshData = useCallback(async () => {
-    console.log('Auto-refreshing data after update...');
     try {
       await Promise.all([
         fetchEmployees(employeePagination.currentPage, employeePagination.limit),
         fetchExistingAttendance(attendancePagination.currentPage, attendancePagination.limit)
       ]);
-      console.log('Auto-refresh completed');
     } catch (error) {
       console.error('Auto-refresh failed:', error);
     }
   }, [employeePagination.currentPage, employeePagination.limit, attendancePagination.currentPage, attendancePagination.limit]);
 
-  // Fetch employees with backend pagination
+  // CORRECTED: Fetch employees with backend pagination
   const fetchEmployees = useCallback(async (page = 1, limit = 50) => {
-    // Update role check to include superadmin
     const currentUserId = ((user?.role === 'admin' || user?.role === 'superadmin' || reduxRole === 'superadmin') && managerId) 
       ? managerId 
       : user?.id;
@@ -587,7 +574,6 @@ const AttendanceCreation = () => {
 
     try {
       setEmployeePagination(prev => ({ ...prev, loading: true }));
-      console.log(`Fetching employees for ${user?.role || reduxRole} - Page: ${page}, Limit: ${limit}`);
       
       const response = await apiConnector(
         'GET',
@@ -595,8 +581,7 @@ const AttendanceCreation = () => {
         null,
         { Authorization: `Bearer ${token}` }
       );
-
-      console.log(response)
+      console.log('response for the get employees : ',response)
 
       if (response.data?.employees) {
         const { employees: fetchedEmployees, totalEmployees, totalPages, page: currentPage } = response.data;
@@ -619,7 +604,7 @@ const AttendanceCreation = () => {
     }
   }, [user?.id, token, getEmployeesEndpoint, managerId, user?.role, reduxRole]);
 
-  // Fetch existing attendance with backend pagination
+  // CORRECTED: Fetch existing attendance with backend pagination
   const fetchExistingAttendance = useCallback(async (page = 1, limit = 100) => {
     const currentUserId = ((user?.role === 'admin' || user?.role === 'superadmin' || reduxRole === 'superadmin') && managerId) 
       ? managerId 
@@ -629,12 +614,15 @@ const AttendanceCreation = () => {
 
     try {
       setAttendancePagination(prev => ({ ...prev, loading: true }));
+      
       const response = await apiConnector(
         'GET',
         `${getAttendanceEndpoint()}?date=${selectedDate}&page=${page}&limit=${limit}`,
         null,
         { Authorization: `Bearer ${token}` }
       );
+
+      console.log('response for the get attendance : ',response)
 
       if (response.data?.attendances) {
         updateAttendanceWithExisting(response.data.attendances);
@@ -664,7 +652,6 @@ const AttendanceCreation = () => {
       company: employee.company
     }));
     setAttendanceData(initialData);
-    console.log('Initialized attendance data for', employeeList.length, 'employees for date:', selectedDate);
   }, [selectedDate]);
 
   const updateAttendanceWithExisting = useCallback((existingAttendance) => {
@@ -723,7 +710,7 @@ const AttendanceCreation = () => {
     }
   }, [fetchEmployees, user?.id, token, managerId, user?.role, reduxRole]);
 
-  // Corrected handleStatusChange with proper create/update logic
+  // CORRECTED: Handle status change with proper create/update logic
   const handleStatusChange = useCallback(async (employeeId, newStatus, notes = '') => {
     if (!token) return;
 
@@ -734,7 +721,6 @@ const AttendanceCreation = () => {
       setUpdateInProgress(prev => new Set([...prev, employeeId]));
       
       if (employeeData.isExisting && employeeData.attendanceId) {
-        console.log('Updating existing attendance record');
         const updateData = {
           status: newStatus,
           notes: notes || '',
@@ -744,13 +730,15 @@ const AttendanceCreation = () => {
 
         const response = await apiConnector(
           'PUT',
-          `${attendanceEndpoints.updateAttendance}${employeeData.attendanceId}`,
+          attendanceEndpoints.updateAttendance.replace(':id', employeeData.attendanceId),
           updateData,
           { 
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         );
+
+        console.log('response for the employee data : ',response)
 
         if (response.data?.attendance) {
           setAttendanceData(prev =>
@@ -764,7 +752,6 @@ const AttendanceCreation = () => {
           toast.success('Attendance updated successfully');
         }
       } else {
-        console.log('Creating new attendance record');
         const createData = {
           employee: employeeId,
           company: employeeData.employeeData?.company || employeeData.company,
@@ -783,6 +770,7 @@ const AttendanceCreation = () => {
             'Content-Type': 'application/json'
           }
         );
+        console.log('response for the create attendance : ',response)
 
         if (response.data) {
           setAttendanceData(prev =>
@@ -819,7 +807,7 @@ const AttendanceCreation = () => {
     );
   }, []);
 
-  // Enhanced bulk status change with proper create/update logic
+  // CORRECTED: Enhanced bulk status change with proper create/update logic
   const handleBulkStatusChange = useCallback(async () => {
     if (!bulkStatus || selectedEmployees.size === 0) {
       toast.error('Please select employees and status for bulk update');
@@ -862,13 +850,15 @@ const AttendanceCreation = () => {
 
           const createResponse = await apiConnector(
             'POST',
-            attendanceEndpoints.bulkAttendance,
+            attendanceEndpoints.bulkCreateAttendance,
             bulkCreateData,
             { 
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
             }
           );
+
+          console.log('response for the bulk create attendance : ',createResponse)
 
           if (createResponse.data?.results) {
             const createResults = createResponse.data.results;
@@ -919,13 +909,15 @@ const AttendanceCreation = () => {
 
           const updateResponse = await apiConnector(
             'PUT',
-            `${attendanceEndpoints.bulkUpdateAttendance}`,
+            attendanceEndpoints.bulkUpdateAttendance,
             bulkUpdateData,
             { 
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
             }
           );
+
+          console.log('response for the bulk update attendance : ',response)
 
           if (updateResponse.data?.results) {
             const updateResults = updateResponse.data.results;
@@ -1096,13 +1088,15 @@ const AttendanceCreation = () => {
 
           await apiConnector(
             'PUT',
-            `${attendanceEndpoints.updateAttendance}${employeeData.attendanceId}`,
+            attendanceEndpoints.updateAttendance.replace(':id', employeeData.attendanceId),
             updateData,
             { 
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json'
             }
           );
+
+          console.log('response for the update attendance : ',response)
 
           setLastUpdateTime(new Date());
         } catch (error) {
@@ -1115,18 +1109,15 @@ const AttendanceCreation = () => {
   // Effects
   useEffect(() => {
     if ((user?.role === 'admin' || user?.role === 'superadmin' || reduxRole === 'superadmin') && !selectedDepartment) {
-      console.log('Admin/Superadmin user detected, loading departments...');
       fetchDepartments();
     } else if (selectedDepartment?._id || 
               (user?.role !== 'admin' && user?.role !== 'superadmin' && reduxRole !== 'superadmin')) {
-      console.log('Loading employees for attendance management...');
       loadAllEmployees();
     }
   }, [user?.role, reduxRole, selectedDepartment, fetchDepartments, loadAllEmployees]);
 
   useEffect(() => {
     if (employees.length > 0 && selectedDate) {
-      console.log('Employees loaded, fetching existing attendance...');
       fetchExistingAttendance(1, attendancePagination.limit);
     }
   }, [employees.length, selectedDate, fetchExistingAttendance, attendancePagination.limit]);
@@ -1592,7 +1583,7 @@ const AttendanceCreation = () => {
           </div>
 
           {/* Attendance Modal */}
-           <AttendanceModal 
+          <AttendanceModal 
             isOpen={isModalOpen}
             onClose={handleCloseModal}
             attendanceData={selectedAttendanceForModal}

@@ -41,6 +41,7 @@ const AdminSidebar = () => {
       { name: "Payroll Manage", link: "/payrollmanage" },
       { name: "Employee master information", link: "/employeemasterinformation" },
       { name: "CTC Structure", link: "/ctcstructure" },
+      { name: "HRA", link: "/hra" },
       { name: "Payments & Deductions", link: "/paymentsanddeductions" },
       { name: "Perquisites Investments", link: "/perquisitesinvestments" },
       { name: "Tax Computation", link: "/taxcomputation" },

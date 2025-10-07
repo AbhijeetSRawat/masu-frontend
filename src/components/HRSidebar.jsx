@@ -28,10 +28,16 @@ const HRSidebar = () => {
         {name: "Attendance Creation", link: "/attendancecreation"},
         { name: "Attendance Approval", link: "/attendenceapproval"},
       ],
+     
       Leave: [
         { name: "Leave Approval", link: "/leaveapproval" }
       ],
     },
+     "Payroll Manage": [
+      
+      { name: "Tax Computation", link: "/taxcomputation" },
+      
+    ],
     "Exit Formalities": [
       { name: "Resignation Approval", link: "/resignationapproval" },
     ],

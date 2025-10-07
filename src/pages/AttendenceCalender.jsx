@@ -61,7 +61,7 @@ const AttendanceCalendar = () => {
     return leavePolicy?.weekOff?.includes(dayOfWeek) || false;
   };
 
-  // Get holiday for a specific date (exact same logic as leave page)
+  // Get holiday for a specific date
   const getHolidayForDate = (date) => {
     if (!leavePolicy?.holidays) return null;
     
@@ -105,35 +105,43 @@ const AttendanceCalendar = () => {
     }
   };
 
-  // Fetch attendance records for the year
+  // FIXED: Fetch attendance records using proper endpoint with query params
   const fetchAttendanceRecords = async () => {
     try {
+      const startDate = `${currentYear}-01-01`;
+      const endDate = `${currentYear}-12-31`;
+      
       const response = await apiConnector(
         'GET',
-        `${attendanceEndpoints.getAttendances}?employeeId=${employee._id}&year=${currentYear}`,
+        `${attendanceEndpoints.getAttendances}?employeeId=${employee._id}&companyId=${company._id}&startDate=${startDate}&endDate=${endDate}`,
         null,
         { Authorization: `Bearer ${token}` }
       );
 
-      if (response.data && Array.isArray(response.data)) {
-        setAttendanceRecords(response.data);
+      if (response.data) {
+        // Handle both response formats
+        const records = response.data.attendances || response.data;
         
-        // Check today's attendance - IMPROVED: Use proper date comparison
-        const today = new Date();
-        const todayStr = today.getFullYear() + '-' + 
-                       String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                       String(today.getDate()).padStart(2, '0');
-        
-        const todayRecord = response.data.find(record => {
-          const recordDate = new Date(record.date);
-          const recordStr = recordDate.getFullYear() + '-' + 
-                           String(recordDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                           String(recordDate.getDate()).padStart(2, '0');
-          return recordStr === todayStr;
-        });
-        
-        setTodayAttendance(todayRecord);
-        console.log('Today attendance found:', todayRecord);
+        if (Array.isArray(records)) {
+          setAttendanceRecords(records);
+          
+          // Check today's attendance
+          const today = new Date();
+          const todayStr = today.getFullYear() + '-' + 
+                         String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                         String(today.getDate()).padStart(2, '0');
+          
+          const todayRecord = records.find(record => {
+            const recordDate = new Date(record.date);
+            const recordStr = recordDate.getFullYear() + '-' + 
+                             String(recordDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                             String(recordDate.getDate()).padStart(2, '0');
+            return recordStr === todayStr;
+          });
+          
+          setTodayAttendance(todayRecord);
+          console.log('Today attendance found:', todayRecord);
+        }
       }
     } catch (error) {
       console.error('Error fetching attendance:', error);
@@ -141,7 +149,7 @@ const AttendanceCalendar = () => {
     }
   };
 
-  // Fetch leave policy (exact same as leave page)
+  // Fetch leave policy
   const fetchLeavePolicy = async () => {
     try {
       const res = await apiConnector(
@@ -231,7 +239,7 @@ const AttendanceCalendar = () => {
     setAttendanceStats(stats);
   };
 
-  // Mark attendance for selected date
+  // FIXED: Mark attendance using proper endpoint
   const handleMarkAttendance = async () => {
     try {
       dispatch(setLoading(true));
@@ -248,65 +256,84 @@ const AttendanceCalendar = () => {
         return;
       }
 
-      const response = await apiConnector(
-        'POST',
-        attendanceEndpoints.createAttendance,
-        {
-          employee: employee._id,
-          company: company._id,
-          date: selectedDate,
-          status: attendanceType,
-          notes: ''
-        },
-        { Authorization: `Bearer ${token}` }
-      );
+      // Check if updating existing record
+      const existingRecord = selectedDateDetails?.type === 'attendance' ? selectedDateDetails.data : null;
+      
+      if (existingRecord && existingRecord._id) {
+        // Update existing attendance
+        const response = await apiConnector(
+          'PUT',
+          attendanceEndpoints.updateAttendance.replace(':id', existingRecord._id),
+          {
+            status: attendanceType,
+            notes: '',
+            date: selectedDate,
+            shift: employee?.employmentDetails?.shift || null
+          },
+          { Authorization: `Bearer ${token}` }
+        );
 
-  
+        if (response.data) {
+          toast.success(`Attendance updated to ${attendanceType.replace('_', ' ')} successfully!`);
+          setShowMarkModal(false);
+          
+          // Update local state immediately
+          setAttendanceRecords(prev => prev.map(record => 
+            record._id === existingRecord._id 
+              ? { ...record, status: attendanceType, updatedAt: new Date().toISOString() }
+              : record
+          ));
 
-      if (response.data?.success) {
-        toast.success(`Attendance marked as ${attendanceType.replace('_', ' ')} successfully!`);
-        setShowMarkModal(false);
-        
-        // IMPROVED: Immediate local update + server refresh
-        const newAttendanceRecord = {
-          _id: response.data.attendance?._id || Date.now().toString(),
-          employee: employee._id,
-          company: company._id,
-          date: selectedDate,
-          status: attendanceType,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+          // Update today's attendance if updating today
+          const today = new Date();
+          const isToday = selectedDate.getFullYear() === today.getFullYear() &&
+                         selectedDate.getMonth() === today.getMonth() &&
+                         selectedDate.getDate() === today.getDate();
+          
+          if (isToday) {
+            setTodayAttendance(prev => ({ ...prev, status: attendanceType }));
+          }
 
-        // Update attendance records immediately
-        setAttendanceRecords(prev => {
-          const filtered = prev.filter(record => {
-            const recordDate = new Date(record.date);
-            const selectedDateStr = selectedDate.getFullYear() + '-' + 
-                                   String(selectedDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                                   String(selectedDate.getDate()).padStart(2, '0');
-            const recordDateStr = recordDate.getFullYear() + '-' + 
-                                 String(recordDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                                 String(recordDate.getDate()).padStart(2, '0');
-            return recordDateStr !== selectedDateStr;
-          });
-          return [...filtered, newAttendanceRecord];
-        });
-
-        // Update today's attendance if marking for today
-        const today = new Date();
-        const isToday = selectedDate.getFullYear() === today.getFullYear() &&
-                       selectedDate.getMonth() === today.getMonth() &&
-                       selectedDate.getDate() === today.getDate();
-        
-        if (isToday) {
-          setTodayAttendance(newAttendanceRecord);
+          // Refresh from server
+          setTimeout(() => refreshAllData(), 500);
         }
+      } else {
+        // Create new attendance
+        const response = await apiConnector(
+          'POST',
+          attendanceEndpoints.createAttendance,
+          {
+            employee: employee._id,
+            company: company._id,
+            date: selectedDate,
+            status: attendanceType,
+            notes: '',
+            shift: employee?.employmentDetails?.shift || null
+          },
+          { Authorization: `Bearer ${token}` }
+        );
 
-        // Refresh from server to ensure data consistency
-        setTimeout(() => {
-          refreshAllData();
-        }, 500);
+        if (response.data) {
+          toast.success(`Attendance marked as ${attendanceType.replace('_', ' ')} successfully!`);
+          setShowMarkModal(false);
+          
+          // Immediate local update
+          const newAttendanceRecord = response.data;
+          setAttendanceRecords(prev => [...prev, newAttendanceRecord]);
+
+          // Update today's attendance if marking today
+          const today = new Date();
+          const isToday = selectedDate.getFullYear() === today.getFullYear() &&
+                         selectedDate.getMonth() === today.getMonth() &&
+                         selectedDate.getDate() === today.getDate();
+          
+          if (isToday) {
+            setTodayAttendance(newAttendanceRecord);
+          }
+
+          // Refresh from server
+          setTimeout(() => refreshAllData(), 500);
+        }
       }
     } catch (error) {
       console.error('Error marking attendance:', error);
@@ -316,7 +343,7 @@ const AttendanceCalendar = () => {
     }
   };
 
-  // Quick mark today's attendance
+  // FIXED: Quick mark today's attendance
   const handleQuickMarkToday = async (status) => {
     try {
       const today = new Date();
@@ -333,57 +360,61 @@ const AttendanceCalendar = () => {
       }
 
       dispatch(setLoading(true));
-      const response = await apiConnector(
-        'POST',
-        attendanceEndpoints.createAttendance,
-        {
-          employee: employee._id,
-          company: company._id,
-          date: today,
-          status: status,
-          notes: ''
-        },
-        { Authorization: `Bearer ${token}` }
-      );
 
-      console.log(response)
-        toast.success(`Marked as ${status.replace('_', ' ')} for today!`);
-        
-        // IMPROVED: Immediate local update
-        const newAttendanceRecord = {
-          _id: response.data.attendance?._id || Date.now().toString(),
-          employee: employee._id,
-          company: company._id,
-          date: today,
-          status: status,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+      // Check if today's attendance already exists
+      if (todayAttendance && todayAttendance._id) {
+        // Update existing
+        const response = await apiConnector(
+          'PUT',
+          attendanceEndpoints.updateAttendance.replace(':id', todayAttendance._id),
+          {
+            status: status,
+            notes: '',
+            date: today,
+            shift: employee?.employmentDetails?.shift || null
+          },
+          { Authorization: `Bearer ${token}` }
+        );
 
-        // Update today's attendance immediately
-        setTodayAttendance(newAttendanceRecord);
-
-        // Update attendance records immediately
-        setAttendanceRecords(prev => {
-          const todayStr = today.getFullYear() + '-' + 
-                          String(today.getMonth() + 1).padStart(2, '0') + '-' + 
-                          String(today.getDate()).padStart(2, '0');
+        if (response.data) {
+          toast.success(`Updated to ${status.replace('_', ' ')} for today!`);
           
-          const filtered = prev.filter(record => {
-            const recordDate = new Date(record.date);
-            const recordStr = recordDate.getFullYear() + '-' + 
-                             String(recordDate.getMonth() + 1).padStart(2, '0') + '-' + 
-                             String(recordDate.getDate()).padStart(2, '0');
-            return recordStr !== todayStr;
-          });
-          return [...filtered, newAttendanceRecord];
-        });
+          // Update local state
+          setTodayAttendance(prev => ({ ...prev, status: status }));
+          setAttendanceRecords(prev => prev.map(record => 
+            record._id === todayAttendance._id 
+              ? { ...record, status: status }
+              : record
+          ));
 
-        // Refresh from server to ensure data consistency
-        setTimeout(() => {
-          refreshAllData();
-        }, 500);
-      
+          setTimeout(() => refreshAllData(), 500);
+        }
+      } else {
+        // Create new
+        const response = await apiConnector(
+          'POST',
+          attendanceEndpoints.createAttendance,
+          {
+            employee: employee._id,
+            company: company._id,
+            date: today,
+            status: status,
+            notes: '',
+            shift: employee?.employmentDetails?.shift || null
+          },
+          { Authorization: `Bearer ${token}` }
+        );
+
+        if (response.data) {
+          toast.success(`Marked as ${status.replace('_', ' ')} for today!`);
+          
+          const newAttendanceRecord = response.data;
+          setTodayAttendance(newAttendanceRecord);
+          setAttendanceRecords(prev => [...prev, newAttendanceRecord]);
+
+          setTimeout(() => refreshAllData(), 500);
+        }
+      }
     } catch (error) {
       console.error('Error marking attendance:', error);
       toast.error(error.response?.data?.message || 'Failed to mark attendance');
@@ -394,7 +425,6 @@ const AttendanceCalendar = () => {
 
   // Get status for a specific date
   const getDateStatus = (date) => {
-    // IMPROVED: Use consistent date comparison
     const dateStr = date.getFullYear() + '-' + 
                    String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                    String(date.getDate()).padStart(2, '0');
@@ -492,7 +522,6 @@ const AttendanceCalendar = () => {
       const holiday = getHolidayForDate(currentDate);
       const isWeekOffDay = isWeekOff(currentDate);
       
-      // IMPROVED: Correct today comparison
       const today = new Date();
       const isToday = currentDate.getFullYear() === today.getFullYear() &&
                      currentDate.getMonth() === today.getMonth() &&
@@ -612,7 +641,7 @@ const AttendanceCalendar = () => {
               </div>
             )}
 
-            {/* Today's Status - IMPROVED */}
+            {/* Today's Status */}
             {todayAttendance && (
               <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
                 <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
@@ -625,8 +654,18 @@ const AttendanceCalendar = () => {
                 <p className="text-green-600 text-sm mt-2">
                   Marked at: {new Date(todayAttendance.createdAt).toLocaleTimeString()}
                 </p>
-                <div className="mt-3">
-                 
+                <div className="mt-3 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedDate(today);
+                      setSelectedDateDetails({ type: 'attendance', data: todayAttendance });
+                      setAttendanceType(todayAttendance.status);
+                      setShowMarkModal(true);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    Update Attendance
+                  </button>
                 </div>
               </div>
             )}
@@ -736,15 +775,11 @@ const AttendanceCalendar = () => {
                         }
                         
                         const { day, date, holiday, isWeekOff, isToday } = dayData;
-                        
-                        // Get attendance status for this date
                         const attendanceStatus = getDateStatus(date);
                         
                         let dayClasses = "h-8 flex items-center justify-center text-xs rounded relative cursor-pointer ";
                         
-                        // FIXED: Priority order - Attendance Status > Today > Holiday > Weekend
                         if (attendanceStatus.type === 'attendance') {
-                          // Attendance status takes highest priority
                           switch (attendanceStatus.data.status) {
                             case 'present':
                               dayClasses += "bg-green-100 text-green-800 font-semibold ";
@@ -762,32 +797,26 @@ const AttendanceCalendar = () => {
                               dayClasses += "text-gray-800 hover:bg-gray-50 ";
                           }
                           
-                          // Add today border if it's today AND has attendance
                           if (isToday) {
                             dayClasses += "ring-2 ring-blue-500 ";
                           }
                           
                         } else if (attendanceStatus.type === 'leave') {
-                          // Leave status
                           dayClasses += "bg-yellow-100 text-yellow-800 font-semibold ";
                           if (isToday) {
                             dayClasses += "ring-2 ring-blue-500 ";
                           }
                           
                         } else if (isToday) {
-                          // Today (only if no attendance marked)
                           dayClasses += "bg-blue-600 text-white font-bold ";
                           
                         } else if (holiday) {
-                          // Holiday
                           dayClasses += "bg-red-100 text-red-800 font-semibold ";
                           
                         } else if (isWeekOff) {
-                          // Weekend
                           dayClasses += "bg-gray-200 text-gray-600 ";
                           
                         } else {
-                          // Regular day
                           dayClasses += "text-gray-800 hover:bg-gray-50 ";
                         }
                         
@@ -826,7 +855,7 @@ const AttendanceCalendar = () => {
               })}
             </div>
             
-            {/* Legend - Updated */}
+            {/* Legend */}
             <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-green-100 border border-green-300 rounded relative">
@@ -878,9 +907,9 @@ const AttendanceCalendar = () => {
           </div>
         </div>
 
-        {/* Mark Attendance Modal - IMPROVED */}
+        {/* Mark Attendance Modal */}
         {showMarkModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 backdrop-blur-3xl bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <FaCalendarCheck className="text-blue-600" />

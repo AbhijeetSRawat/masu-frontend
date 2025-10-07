@@ -63,6 +63,13 @@ import ManagerPanel from "./pages/ManagerPanel";
 import HRPanel from "./pages/HRPanel";
 import AttendanceCalendar from "./pages/AttendenceCalender";
 import AttendanceCreation from "./pages/AttendanceCreation";
+import CTCStructure from "./pages/CTCStructure";
+import PerquisitesInvestments from "./pages/PerquisiteInvestments";
+import EmployeePerquisites from "./pages/EmployeePerquisites";
+import FlexiBenefits from "./pages/Flexi";
+import HRACalculator from "./pages/Hra";
+import TaxComputation from "./pages/TaxComputation";
+import EmployeeTaxComputation from "./pages/EmployeeTaxComputation";
 
 
 function App() {
@@ -85,6 +92,7 @@ function App() {
           <Route path="/forhrteams" element={<ForHRTeams />} />
           <Route path="/payrollprocessing" element={<PayrollProcessing />} />
           <Route path="/payslip" element={<PaySlip />} />
+          <Route path="/taxcomputationemployee" element={<EmployeeTaxComputation />} />
           <Route path="/salarybreakdown" element={<SalaryBreakdown />} />
           <Route path="/taxregimeselection" element={<TaxRegimeSelection />} />
           <Route path="/taxcomputationsheet" element={<TaxComputationSheet />} />
@@ -100,6 +108,7 @@ function App() {
           <Route path="/reimbursements" element={<Reimbursements />} />
           <Route path="/employeepolicy" element={<EmployeePolicy />} />
           <Route path="/leavebalance" element={<LeaveBalance />} />
+          <Route path="/employeeperquisites" element={<EmployeePerquisites />} />
           <Route path="/onboardingandexit" element={<EmployeeResignation />} />
           <Route
             path="/attendenceregularization"
@@ -198,6 +207,45 @@ function App() {
                   <PrivateRoute>
                     {" "}
                     <SubAdminPanel />{" "}
+                  </PrivateRoute>
+                }
+              />
+               <Route
+                path="/ctcstructure"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <CTCStructure />{" "}
+                  </PrivateRoute>
+                }
+              />
+
+              <Route
+                path="/taxcomputation"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <TaxComputation />{" "}
+                  </PrivateRoute>
+                }
+              />
+
+              <Route
+                path="/flexi"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <FlexiBenefits />{" "}
+                  </PrivateRoute>
+                }
+              />
+
+               <Route
+                path="/perquisitesinvestments"
+                element={
+                  <PrivateRoute>
+                    {" "}
+                    <PerquisitesInvestments />{" "}
                   </PrivateRoute>
                 }
               />
@@ -366,6 +414,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <PayrollCalculation />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/hra"
+                element={
+                  <PrivateRoute>
+                    <HRACalculator />
                   </PrivateRoute>
                 }
               />

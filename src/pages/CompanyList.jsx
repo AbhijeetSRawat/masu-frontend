@@ -708,7 +708,7 @@ const CompanyList = () => {
     "Leave Assign", "Leave Approval", "Leave Balance", "Rule", "History",
     "Policies", "Company Holidays", "New Joiners Form", "Resignation Setup",
     "Resignation Approval", "Self Evaluation (KRA)", "Employee master information",
-    "CTC Structure", "Payments & Deductions", "Perquisites Investments",
+    "CTC Structure","HRA", "Payments & Deductions", "Perquisites Investments",
     "Tax Computation", "Reimbursement", "Flexi", "Tax computation sheet",
     "Investments (All sections: BOC,BOD,24b,etc.)", "Payroll Calculation",
     "Employee Master Report", "CTC Structure Report", "Payments & Deductions Report",

@@ -23,6 +23,11 @@ const HRPanel = () => {
         { name: "Leave Approval", link: "/leaveapproval" }
       ],
     },
+     "Payroll Manage": [
+      
+      { name: "Tax Computation", link: "/taxcomputation" },
+      
+    ],
     "Exit Formalities": [
       { name: "Resignation Approval", link: "/resignationapproval" },
     ],

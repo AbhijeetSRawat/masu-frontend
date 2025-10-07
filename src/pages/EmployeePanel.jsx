@@ -45,6 +45,7 @@ const EmployeePanel = () => {
     "Investment": {
       icon: <FaMoneyBillTrendUp />,
       items: [
+        { name : "Perquisites", link:"/employeeperquisites"},
         { name: "Declaration", link: "/declaration" },
         { name: "Approval Status", link: "/approvalstatus" },
       ],
@@ -60,7 +61,7 @@ const EmployeePanel = () => {
       icon: <TbTax />,
       items: [
         { name: "Tax Regime Selection (old/new)", link: "/taxregimeselection" },
-        { name: "Tax Computation Sheet", link: "/taxcomputation" },
+        { name: "Tax Computation Sheet", link: "/taxcomputationemployee" },
       ],
     },
     "Attendance": {

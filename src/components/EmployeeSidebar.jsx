@@ -35,6 +35,7 @@ const EmployeeSidebar = () => {
     ],
     "Pay Slip": [{ name: "Select MM/YY", link: "/payslip" }],
     Investment: [
+      { name : "Perquisites", link:"/employeeperquisites"},
       { name: "Declaration", link: "/declaration" },
       { name: "Approval Status", link: "/approvalstatus" },
     ],
@@ -44,7 +45,7 @@ const EmployeeSidebar = () => {
     ],
     "Tax Compliance": [
       { name: "Tax Regime Selection (old/new)", link: "/taxregimeselection" },
-      { name: "Tax Computation Sheet", link: "/taxcomputationsheet" },
+      { name: "Tax Computation Sheet", link: "/taxcomputationemployee" },
     ],
     Attendence: [
       { name: "Daily Attendence Records", link: "/attendence" },

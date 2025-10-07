@@ -31,6 +31,7 @@ const AdminPanel = () => {
         link: "/employeemasterinformation",
       },
       { name: "CTC Structure", link: "/ctcstructure" },
+      { name: "HRA", link: "/hra" },
       { name: "Payments & Deductions", link: "/paymentsanddeductions" },
       { name: "Perquisites Investments", link: "/perquisitesinvestments" },
       { name: "Tax Computation", link: "/taxcomputation" },
